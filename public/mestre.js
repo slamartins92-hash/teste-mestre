@@ -86,16 +86,23 @@ function doPointer(ev,phase){
  if(mode==='control')queue=queue.then(()=>send({type:'pointer',phase,x:p.x,y:p.y})).catch(()=>{});
 }
 cover.addEventListener('pointerdown',ev=>{down=true;if(mode==='control')cover.setPointerCapture(ev.pointerId);doPointer(ev,'down');ev.preventDefault();});
+let lastMoveAt=0;
+cover.addEventListener('pointermove',ev=>{
+ if(!down||mode!=='control')return;
+ const now=performance.now();
+ if(now-lastMoveAt>=65){lastMoveAt=now;doPointer(ev,'move');}
+ ev.preventDefault();
+});
 cover.addEventListener('pointerup',ev=>{doPointer(ev,'up');down=false;if(cover.hasPointerCapture(ev.pointerId))cover.releasePointerCapture(ev.pointerId);});
 cover.addEventListener('pointercancel',()=>down=false);
-cover.addEventListener('wheel',ev=>{if(mode==='control'){ev.preventDefault();send({type:'scroll',delta:Math.max(-650,Math.min(650,ev.deltaY))});}},{passive:false});
+cover.addEventListener('wheel',ev=>{if(mode==='control'){ev.preventDefault();const p=pointer(ev);send({type:'scroll',delta:Math.max(-650,Math.min(650,ev.deltaY)),...(p||{})});}},{passive:false});
 window.addEventListener('resize',markerPosition);
 $('pos-x').oninput=()=>setPos(Number($('pos-x').value)/100,y/100);
 $('pos-y').oninput=()=>setPos(x/100,Number($('pos-y').value)/100);
 for(const id of ['message-size','void-size'])$(id).oninput=()=>$ (id+'-value').textContent=$(id).value+(id==='message-size'?' px':'%');
 $('app-grid').onclick=ev=>{const b=ev.target.closest('button[data-screen]');if(b)send({type:'navigate',target:b.dataset.screen},'Tela alterada');};
-$('scroll-up').onclick=()=>send({type:'scroll',delta:-470});
-$('scroll-down').onclick=()=>send({type:'scroll',delta:470});
+$('scroll-up').onclick=()=>send({type:'scroll',delta:-470,x:.5,y:.65});
+$('scroll-down').onclick=()=>send({type:'scroll',delta:470,x:.5,y:.65});
 $('type-send').onclick=()=>{const t=$('type-text').value;if(t)send({type:'type',text:t},'Texto enviado');else toast('Digite um texto',true);};
 $('message-show').onclick=()=>{const t=$('message').value.trim();if(t)send({type:'message',text:t,x,y,size:Number($('message-size').value)},'Texto exibido');else toast('Escreva a mensagem',true);};
 $('message-clear').onclick=()=>send({type:'message',clear:true},'Texto removido');
