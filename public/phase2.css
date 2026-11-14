@@ -1,0 +1,31 @@
+
+.arg-secret-portal{position:absolute;inset:54px 0 0;z-index:20;background:#101116;color:#eff0f5;display:none;flex-direction:column}
+.arg-secret-portal.arg-visible{display:flex}
+.arg-secret-header{display:flex;align-items:center;justify-content:space-between;margin:8px 18px;padding:15px 0;border-bottom:1px solid #272a31}
+.arg-secret-header b{font-size:22px;letter-spacing:-.05em}.arg-secret-header small{font-size:11px;color:#9295a0}
+.arg-secret-subtitle{font-size:11px;color:#8c909e;margin:22px 17px 9px}
+#arg-secret-entries{padding:0 8px;flex:1}
+#arg-secret-entries .sinaiszap-blocked-contact{width:100%;min-height:68px;text-align:left;display:flex;align-items:center;background:transparent;color:#eff0f6;border-bottom:1px solid #2c2e38}
+#arg-secret-entries .sinaiszap-blocked-name{position:relative}
+#arg-secret-entries .arg-secret-flash{position:absolute;left:0;top:0;color:#ffafc7;background:#101116;opacity:0;text-shadow:0 0 10px #eb3158;white-space:nowrap;animation:arg-name-flicker 8s steps(1,end) infinite}
+@keyframes arg-name-flicker{0%,69%,76%,79%,83%,100%{opacity:0}70%,75%,80%,82%{opacity:1}}
+.arg-secret-footer{text-align:center;font-size:10px;color:#5f6471;padding:20px}
+.arg-v4-contact .sinaiszap-blocked-avatar{color:#eaf0ff;background:#24293b;font-weight:700}
+.arg-damage-layer{position:absolute;inset:0;z-index:997;pointer-events:none;overflow:hidden;border-radius:inherit}
+.arg-damage-svg{position:absolute;inset:0;width:100%;height:100%;display:none;filter:drop-shadow(1px 1px 1px #020207)}
+.arg-damage-svg g{fill:none;stroke:#e8ecf4;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:bevel}
+.arg-damage-svg .arg-crack-second{stroke-width:1.8;display:none}
+.arg-damage-svg .arg-crack-third{stroke-width:2;display:none}
+.arg-damage-svg .arg-hole-border{display:none;fill:#24262b;stroke:#f2f4f8;stroke-width:6;filter:drop-shadow(0 0 12px #000)}
+.arg-damage-svg .arg-hole-black{display:none;fill:#010103;stroke:#07080b;stroke-width:5}
+.arg-damage-layer[data-level="1"] .arg-damage-svg,.arg-damage-layer[data-level="2"] .arg-damage-svg,.arg-damage-layer[data-level="3"] .arg-damage-svg{display:block}
+.arg-damage-layer[data-level="2"] .arg-crack-second,.arg-damage-layer[data-level="3"] .arg-crack-second,.arg-damage-layer[data-level="3"] .arg-crack-third,.arg-damage-layer[data-level="3"] .arg-hole-border,.arg-damage-layer[data-level="3"] .arg-hole-black{display:block}
+.arg-corner-void{position:absolute;inset:0;opacity:0;background:radial-gradient(ellipse at 0% 0%,#000 0 13%,transparent 38%),radial-gradient(ellipse at 100% 0%,#000 0 13%,transparent 38%),radial-gradient(ellipse at 0% 100%,#000 0 13%,transparent 38%),radial-gradient(ellipse at 100% 100%,#000 0 13%,transparent 38%);transition:opacity .5s;animation:arg-corner-pulse 3s ease-in-out infinite alternate}
+.arg-corner-void.arg-active{opacity:1}
+@keyframes arg-corner-pulse{to{transform:scale(1.08);filter:blur(5px)}}
+.arg-screen-bug{position:absolute;inset:0;opacity:0;background:repeating-linear-gradient(180deg,transparent 0 6px,#def0ff35 8px,transparent 10px 18px),linear-gradient(125deg,#2ee0ff30,transparent,#f7416b30);mix-blend-mode:screen;animation:arg-fx-twitch .19s steps(3,end) infinite}
+.arg-screen-bug.arg-active{opacity:.8}
+@keyframes arg-fx-twitch{to{transform:translate(4px,-2px)}}
+.arg-screen-blackout{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .22s}
+.arg-screen-blackout.arg-active{opacity:1}
+@media(prefers-reduced-motion:reduce){#arg-secret-entries .arg-secret-flash,.arg-screen-bug,.arg-corner-void{animation:none}}
