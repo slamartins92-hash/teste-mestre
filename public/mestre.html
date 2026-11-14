@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="author" content="Pingu"><meta name="theme-color" content="#0b0c11">
+<title>Central de Controle</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color-scheme:dark;--bg:#090a0e;--panel:#15171e;--panel2:#1b1e26;--line:#292d37;--text:#f0f1f5;--soft:#9a9ea9;--accent:#d82d50;}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.42;cursor:default}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #f56b83;outline-offset:2px}
+.hidden{display:none!important}.small{font-size:12px;color:var(--soft);line-height:1.55}.eyebrow{font-size:11px;letter-spacing:.14em;font-weight:750;color:#e26a82;text-transform:uppercase}.danger{color:#ff8295}
+#login{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 12%,#2b0f1c 0,#0b0b10 54%,#090a0e 100%)}
+.login-card{width:min(420px,100%);border:1px solid #38303a;border-radius:24px;background:#14151bcc;box-shadow:0 28px 90px #0009;padding:34px 30px}.login-icon{background:#61203444;color:#ff6987;width:50px;height:50px;border-radius:16px;display:grid;place-items:center;font-size:28px;margin-bottom:20px}.login-card h1{font-size:26px;letter-spacing:-.03em;margin:8px 0}.login-card p{margin:7px 0 26px;color:var(--soft);line-height:1.5;font-size:13px}.login-card label{font-size:12px;font-weight:700;display:block;margin:0 0 8px}.login-card input{width:100%;border:1px solid #41424e;border-radius:12px;padding:14px;background:#0e1016;color:#fff}.login-card button{margin-top:14px;width:100%;padding:14px;border:0;border-radius:12px;background:#d82d50;color:white;font-weight:750}.login-error{color:#ff8399;min-height:17px;font-size:12px;margin-top:10px}
+header.top{height:75px;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:14px clamp(16px,3vw,38px);border-bottom:1px solid var(--line);background:#101116} .brand{display:flex;gap:13px;align-items:center}.brand-logo{background:#44202a;border:1px solid #6c3040;border-radius:13px;height:44px;width:44px;display:grid;place-items:center;color:#ff7791;font-size:26px;font-weight:750}.brand h1{font-size:18px;margin:0;letter-spacing:-.03em}.brand small{display:block;color:var(--soft);font-size:10px;letter-spacing:.09em;margin-top:3px}.head-right{display:flex;gap:13px;align-items:center}.status{font-size:12px;color:#9fa5b1;display:flex;align-items:center;gap:7px}.dot{width:8px;height:8px;border-radius:50%;background:#797d87}.dot.online{background:#5ccf98;box-shadow:0 0 0 3px #5ccf9822}.soft-btn{border:1px solid #3a3c47;background:#1b1d25;color:#edf0f5;padding:10px 13px;border-radius:11px;font-size:12px}
+main{max-width:1500px;margin:auto;padding:26px 24px 42px;display:grid;grid-template-columns:minmax(310px,495px) minmax(360px,1fr);gap:28px;align-items:start}.preview-card{position:sticky;top:17px;background:#111318;border:1px solid #272a32;border-radius:22px;padding:18px}.preview-heading{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:11px}.preview-heading strong{font-size:14px}.preview-mode{background:#22252d;border-radius:9px;padding:8px 10px;font-size:11px;color:#c4c6cf}.preview-viewport{position:relative;width:100%;height:min(770px,calc(100svh - 193px));min-height:540px;background:#090a0e;border:1px solid #2b2d35;border-radius:17px;overflow:hidden;display:flex;justify-content:center;align-items:center}.preview-viewport iframe{width:100%;height:100%;border:0;pointer-events:none}.preview-cover{position:absolute;inset:0;z-index:7;touch-action:none;cursor:crosshair}.preview-cover.control{cursor:pointer}.point-marker{position:absolute;z-index:8;width:17px;height:17px;border-radius:50%;border:2px solid #ff607f;background:#ff607f30;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 0 6px #ff4b6914}.point-marker:before,.point-marker:after{content:'';position:absolute;background:#ff86a0}.point-marker:before{width:25px;height:1px;left:-6px;top:6px}.point-marker:after{height:25px;width:1px;top:-6px;left:6px}.mode-row{display:flex;gap:8px;margin-top:13px}.mode-row button{flex:1;padding:11px;border:1px solid #343641;border-radius:11px;background:#20232b;color:#d1d4dd;font-size:12px}.mode-row button.active{color:#fff;background:#45202e;border-color:#a63751}.preview-foot{display:flex;justify-content:space-between;gap:10px;margin-top:11px;color:#a0a6b4;font-size:11px}.preview-foot b{color:#ececf2;font-weight:600}
+.control-stack{display:flex;flex-direction:column;gap:17px}.section{border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:21px}.section-title{display:flex;align-items:flex-start;justify-content:space-between;gap:13px;margin-bottom:17px}.section-title h2{margin:0;font-size:16px;letter-spacing:-.02em}.section-title p{margin:6px 0 0;font-size:12px;line-height:1.5;color:var(--soft)}.section-icon{background:#28222a;border-radius:11px;min-width:39px;height:39px;display:grid;place-items:center;color:#fa7a97;font-size:20px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:7px;min-width:0}.field.full{grid-column:1/-1}.field label{font-size:11px;color:#c8cbd4;font-weight:650}.field input,.field textarea,.field select{background:#0f1117;color:#eff0f5;border:1px solid #353945;border-radius:10px;padding:10px 12px;min-width:0;font-size:13px;width:100%}.field textarea{resize:vertical;min-height:80px;line-height:1.5}.field input[type=range]{padding:0;accent-color:#ed4b71;background:transparent}.range-label{display:flex;justify-content:space-between;gap:12px;align-items:center}.range-label output{color:#b5b9c4;font-size:11px}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}.btn{border:0;border-radius:10px;padding:12px 15px;background:#d62e50;color:#fff;font-weight:750;font-size:12px}.btn.alt{border:1px solid #383b46;background:#22252d;color:#e4e7ec}.btn.subtle{border:1px solid #4a2733;background:#271922;color:#f4a8b7}.btn:active{transform:translateY(1px)}.app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.app-grid button{background:#22252d;border:1px solid #343741;border-radius:12px;min-height:67px;color:#e7e9ef;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;padding:9px 6px;font-size:11px}.app-grid button span{font-size:20px}.app-grid button:hover,.btn.alt:hover{border-color:#7b4356;background:#30242d}
+.log{height:160px;overflow:auto;display:flex;flex-direction:column-reverse;gap:9px;font-size:11px;color:#a9aeba}.log-entry{border-top:1px solid #252731;padding-top:8px}.log-entry time{font-variant-numeric:tabular-nums;color:#747b88;margin-right:7px}.toast{position:fixed;bottom:20px;right:20px;background:#262934;border:1px solid #505462;padding:13px 17px;border-radius:11px;box-shadow:0 10px 32px #0008;font-size:12px;z-index:25;max-width:min(370px,90%)}
+@media(max-width:900px){main{grid-template-columns:1fr;padding:17px;gap:17px}.preview-card{position:static}.preview-viewport{height:720px;min-height:530px;max-height:70svh}}
+@media(max-width:520px){header.top{padding:14px 15px;height:auto}.brand h1{font-size:15px}.brand-logo{height:39px;width:39px}.head-right .status{font-size:11px}.head-right{gap:8px}main{padding:12px}.section{padding:16px}.app-grid{grid-template-columns:repeat(4,1fr);gap:6px}.app-grid button{font-size:10px}.preview-card{padding:12px}.preview-viewport{height:640px;max-height:75svh}}
+</style>
+</head>
+<body>
+<div id="login">
+ <form id="login-form" class="login-card">
+  <div class="login-icon">◈</div><div class="eyebrow">Sinais Escarlate · acesso restrito</div>
+  <h1>Central do Mestre</h1>
+  <p>Controle o celular virtual do ARG. Acesso administrativo reservado.</p>
+  <label for="pass">Senha do Mestre</label><input type="password" id="pass" placeholder="Digite a senha" autocomplete="current-password" required>
+  <button type="submit">Acessar painel</button><div class="login-error" id="login-error" role="status"></div>
+ </form>
+</div>
+<div id="dashboard" class="hidden">
+<header class="top">
+ <div class="brand"><div class="brand-logo">◈</div><div><h1>Sinais Escarlate</h1><small>CENTRAL DO MESTRE</small></div></div>
+ <div class="head-right"><div class="status"><span class="dot" id="online-dot"></span><span id="online-label">Aguardando celular</span></div><button id="logout" class="soft-btn">Sair</button></div>
+</header>
+<main>
+ <aside class="preview-card">
+  <div class="preview-heading"><strong>Celular espelhado</strong><span class="preview-mode" id="app-label">Tela bloqueada</span></div>
+  <div class="preview-viewport" id="viewport">
+   <iframe src="about:blank" id="preview-frame" title="Espelho do celular do ARG" scrolling="no"></iframe>
+   <div class="preview-cover" id="preview-cover" aria-label="Área de seleção ou controle remoto"></div>
+   <div class="point-marker" id="point-marker" style="display:none"></div>
+  </div>
+  <div class="mode-row"><button type="button" id="mode-place" class="active">◎ Escolher posição</button><button type="button" id="mode-control">↖ Controlar celular</button></div>
+  <div class="preview-foot"><span>Posição: <b id="position-label">50%, 50%</b></span><span id="mirror-status">Aguardando sincronização</span></div>
+  <p class="small">No modo <b>Escolher posição</b>, toque na prévia para colocar o texto branco ou o Vazio. No modo <b>Controlar celular</b>, clique, arraste ou role para interagir com o celular do jogador.</p>
+ </aside>
+ <div class="control-stack">
+  <section class="section">
+   <div class="section-title"><div><h2>Abrir telas à força</h2><p>Troque o aplicativo do jogador sem exibir nenhum botão de Mestre para ele.</p></div><span class="section-icon">↗</span></div>
+   <div class="app-grid" id="app-grid">
+    <button data-screen="home"><span>⌂</span>Início</button><button data-screen="lock"><span>▣</span>Bloquear</button>
+    <button data-screen="sinaiszap"><span>☰</span>SinaisZap</button><button data-screen="google"><span>ℤ</span>Zoogle</button>
+    <button data-screen="gallery"><span>▧</span>Galeria</button><button data-screen="phone"><span>✆</span>Telefone</button>
+    <button data-screen="calculator"><span>▦</span>Calculadora</button><button data-screen="settings"><span>⚙</span>Configurações</button>
+   </div>
+   <div class="actions"><button id="scroll-up" class="btn alt">↑ Rolar para cima</button><button id="scroll-down" class="btn alt">↓ Rolar para baixo</button></div>
+   <div class="fields" style="margin-top:13px"><div class="field full"><label for="type-text">Digitar no campo selecionado do celular</label><input id="type-text" placeholder="Texto a ser digitado..."></div></div>
+   <div class="actions"><button id="type-send" class="btn alt">Digitar</button></div>
+  </section>
+  <section class="section">
+   <div class="section-title"><div><h2>Texto misterioso</h2><p>Surge branco, diretamente sobre a tela. Nenhum nome ou indicação do Mestre.</p></div><span class="section-icon">⌁</span></div>
+   <div class="fields">
+    <div class="field full"><label for="message">Mensagem</label><textarea id="message" maxlength="300" placeholder="VOCÊ NÃO DEVERIA ESTAR AQUI."></textarea></div>
+    <div class="field"><div class="range-label"><label for="pos-x">Horizontal</label><output id="pos-x-value">50%</output></div><input type="range" id="pos-x" min="5" max="95" value="50"></div>
+    <div class="field"><div class="range-label"><label for="pos-y">Vertical</label><output id="pos-y-value">50%</output></div><input type="range" id="pos-y" min="8" max="92" value="50"></div>
+    <div class="field full"><div class="range-label"><label for="message-size">Tamanho das letras</label><output id="message-size-value">22 px</output></div><input id="message-size" type="range" min="14" max="36" value="22"></div>
+   </div>
+   <div class="actions"><button id="message-show" class="btn">Mostrar texto branco</button><button id="message-clear" class="btn subtle">Remover texto</button></div>
+  </section>
+  <section class="section">
+   <div class="section-title"><div><h2>Manifestação do Vazio</h2><p>Escolha onde a mancha escura se forma e quanto espaço ela ocupa.</p></div><span class="section-icon">◉</span></div>
+   <div class="fields"><div class="field full"><div class="range-label"><label for="void-size">Tamanho da manifestação</label><output id="void-size-value">45%</output></div><input id="void-size" type="range" min="12" max="110" value="45"></div></div>
+   <div class="actions"><button id="void-show" class="btn">Fazer Vazio aparecer</button><button id="void-clear" class="btn subtle">Remover Vazio</button></div>
+  </section>
+  <section class="section">
+   <div class="section-title"><div><h2>Notificação falsa</h2><p>Enviada como se fosse do próprio celular virtual, sem assinatura do Mestre.</p></div><span class="section-icon">♢</span></div>
+   <div class="fields"><div class="field full"><label for="notification-title">Título</label><input id="notification-title" maxlength="55" value="Sistema"></div><div class="field full"><label for="notification-body">Mensagem</label><textarea id="notification-body" maxlength="220" placeholder="Nova atividade detectada."></textarea></div></div>
+   <div class="actions"><button id="notification-send" class="btn">Enviar notificação</button><button id="glitch-send" class="btn alt">⚡ Glitch rápido</button></div>
+  </section>
+  <section class="section">
+   <div class="section-title"><div><h2>Controle de emergência</h2><p>Desative todos os efeitos caso algo não saia como previsto.</p></div><span class="section-icon">⏻</span></div>
+   <div class="actions"><button id="clear-all" class="btn subtle">Parar efeitos do Mestre</button></div>
+  </section>
+  <section class="section"><div class="section-title"><div><h2>Atividades do celular</h2><p>Mostra somente interações dentro do ARG, não dados do aparelho real.</p></div><span class="section-icon">≋</span></div><div id="log" class="log"><div class="log-entry">Aguardando conexão…</div></div></section>
+ </div>
+</main>
+</div>
+<div id="toast" class="toast hidden" role="status"></div>
+<script src="/mestre.js" defer></script>
+</body>
+</html>
