@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id), login=$('login'),dashboard=$('dashboard'),frame=$('preview-frame'),cover=$('preview-cover'),marker=$('point-marker');
-let stream=null,ready=false,mirror={},effects=null,mode='control',x=50,y=50,down=false,toastTimer=null,online=false;
+let stream=null,ready=false,mirror={},effects=null,latestCanvas=null,mode='control',x=50,y=50,down=false,toastTimer=null,online=false;
 const api=async (path,body)=>{
  const response=await fetch(path,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
  const json=await response.json().catch(()=>({error:'Erro de conexão'}));
@@ -34,7 +34,7 @@ $('logout').addEventListener('click',async()=>{await api('/api/master/logout',{}
 frame.addEventListener('load',()=>{ready=false;setTimeout(()=>frame.contentWindow?.postMessage({type:'arg-ping'},location.origin),180);});
 window.addEventListener('message',ev=>{
  if(ev.origin!==location.origin||ev.source!==frame.contentWindow)return;
- if(ev.data?.type==='arg-ready'){ready=true;postFrame('arg-mirror',{items:mirror});if(effects)postFrame('arg-effects',{effects});}
+ if(ev.data?.type==='arg-ready'){ready=true;postFrame('arg-mirror',{items:mirror});if(effects)postFrame('arg-effects',{effects});if(latestCanvas)postFrame('arg-canvas',latestCanvas);}
 });
 function updateInfo(v){
  if(!v)return;const names={home:'Início',bloqueio:'Bloqueio',settings:'Configurações',phone:'Telefone',google:'Zoogle',gallery:'Galeria',sinaiszap:'SinaisZap',calculator:'Calculadora'};
@@ -58,6 +58,7 @@ function connect(){
   updateInfo(d.info);$('mirror-status').textContent='Sincronizado';
  });
  stream.addEventListener('effects',ev=>{effects=JSON.parse(ev.data);postFrame('arg-effects',{effects});});
+ stream.addEventListener('canvas',ev=>{latestCanvas=JSON.parse(ev.data);postFrame('arg-canvas',latestCanvas);});
  stream.addEventListener('activity',ev=>{const d=JSON.parse(ev.data);log(d.event,d.at);});
  stream.onerror=()=>{$('mirror-status').textContent='Reconectando';};
 }
