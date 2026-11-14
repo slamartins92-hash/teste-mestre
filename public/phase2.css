@@ -29,3 +29,8 @@
 .arg-screen-blackout{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .22s}
 .arg-screen-blackout.arg-active{opacity:1}
 @media(prefers-reduced-motion:reduce){#arg-secret-entries .arg-secret-flash,.arg-screen-bug,.arg-corner-void{animation:none}}
+
+/* Alternância completa: nunca deixar o final de "bloqueado" visível por trás de "Irmazinha<3" */
+#arg-secret-entries .arg-secret-base{display:block;animation:arg-base-flicker 8s steps(1,end) infinite}
+@keyframes arg-base-flicker{0%,69%,76%,79%,83%,100%{opacity:1}70%,75%,80%,82%{opacity:0}}
+@media(prefers-reduced-motion:reduce){#arg-secret-entries .arg-secret-base{animation:none}}

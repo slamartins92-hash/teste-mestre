@@ -29,6 +29,12 @@ body.preview-expanded{overflow:hidden}
 .preview-card:not(.arg-mark-mode) .void-draw-layer{display:none}
 .preview-card.arg-mark-mode .preview-cover{cursor:crosshair}
 .preview-card.arg-mark-mode .point-marker{display:none!important}
+
+/* Correção 14-11-2026: botões de modo acima da camada da prévia */
+.preview-card .mode-row,.preview-card .preview-foot{position:relative;z-index:20}
+#mode-place,#mode-control,#mode-mark,#void-mark-clear,#preview-expand{position:relative;z-index:21;pointer-events:auto!important;cursor:pointer;touch-action:manipulation}
+#preview-cover{pointer-events:auto!important;touch-action:none!important;cursor:crosshair}
+#void-draw-layer,#void-draw-shape,#point-marker{pointer-events:none!important}
 </style>
 </head>
 <body>
@@ -116,6 +122,6 @@ body.preview-expanded{overflow:hidden}
 </main>
 </div>
 <div id="toast" class="toast hidden" role="status"></div>
-<script src="/mestre.js?v=p2b" defer></script>
+<script src="/mestre.js?v=correcao-141126a" defer></script>
 </body>
 </html>

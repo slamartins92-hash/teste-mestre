@@ -71,9 +71,15 @@ function connect(){
  stream.onerror=()=>{$('mirror-status').textContent='Reconectando';};
 }
 function phoneRect(){
- try{const f=frame.getBoundingClientRect(),g=frame.contentDocument.querySelector('.glass')?.getBoundingClientRect();
- return g?{left:f.left+g.left,top:f.top+g.top,width:g.width,height:g.height}:null;}
- catch(e){return null;}
+ try {
+  const f=frame.getBoundingClientRect(),win=frame.contentWindow,doc=frame.contentDocument;
+  if(!win||!doc)return null;
+  const glass=doc.querySelector('#device .glass')||doc.querySelector('.glass')||doc.querySelector('#device');
+  const g=glass?.getBoundingClientRect();
+  if(!g)return null;
+  const sx=f.width/Math.max(win.innerWidth,1),sy=f.height/Math.max(win.innerHeight,1);
+  return {left:f.left+g.left*sx,top:f.top+g.top*sy,width:g.width*sx,height:g.height*sy};
+ }catch(e){return null;}
 }
 function pointer(ev){
  const r=phoneRect();
@@ -139,9 +145,10 @@ function doPointer(ev,phase){
  }
 }
 cover.addEventListener('pointerdown',ev=>{
+ if(ev.button!==undefined&&ev.button!==0)return;
  down=true;
- if(mode==='control'||mode==='mark')cover.setPointerCapture(ev.pointerId);
- if(mode==='mark'){voidPoints=[];marking=true;addVoidPoint(ev,true);}
+ try{cover.setPointerCapture(ev.pointerId);}catch(e){}
+ if(mode==='mark'){voidPoints=[];marking=true;addVoidPoint(ev,true);drawVoidOutline();}
  else doPointer(ev,'down');
  ev.preventDefault();
 });

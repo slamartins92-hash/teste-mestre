@@ -10,7 +10,7 @@ app.append(portal);
 const entries=portal.querySelector('#arg-secret-entries');
 if(old02){
  const title=old02.querySelector('.sinaiszap-blocked-name');
- if(title)title.innerHTML='<span>Contato bloqueado</span><span class="arg-secret-flash">Irmazinha&lt;3</span><small>Mensagens de 2025 recuperadas</small>';
+ if(title)title.innerHTML='<span class="arg-secret-base">Contato bloqueado</span><span class="arg-secret-flash">Irmazinha&lt;3</span><small>Mensagens de 2025 recuperadas</small>';
  entries.append(old02);
 }
 const v4=document.createElement('button');v4.type='button';v4.id='arg-v4';
