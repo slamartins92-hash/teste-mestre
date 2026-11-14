@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id), login=$('login'),dashboard=$('dashboard'),frame=$('preview-frame'),cover=$('preview-cover'),marker=$('point-marker');
-let stream=null,ready=false,mirror={},effects=null,mode='place',x=50,y=50,down=false,toastTimer=null,online=false;
+let stream=null,ready=false,mirror={},effects=null,mode='control',x=50,y=50,down=false,toastTimer=null,online=false;
 const api=async (path,body)=>{
  const response=await fetch(path,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
  const json=await response.json().catch(()=>({error:'Erro de conexão'}));
@@ -83,7 +83,7 @@ let queue=Promise.resolve();
 function doPointer(ev,phase){
  const p=pointer(ev);if(!p)return;
  if(mode==='place'&&phase==='up')setPos(p.x,p.y);
- if(mode==='control')queue=queue.then(()=>send({type:'pointer',phase,x:p.x,y:p.y}));
+ if(mode==='control')queue=queue.then(()=>send({type:'pointer',phase,x:p.x,y:p.y})).catch(()=>{});
 }
 cover.addEventListener('pointerdown',ev=>{down=true;if(mode==='control')cover.setPointerCapture(ev.pointerId);doPointer(ev,'down');ev.preventDefault();});
 cover.addEventListener('pointerup',ev=>{doPointer(ev,'up');down=false;if(cover.hasPointerCapture(ev.pointerId))cover.releasePointerCapture(ev.pointerId);});
@@ -104,5 +104,6 @@ $('void-clear').onclick=()=>send({type:'void',clear:true},'Vazio removido');
 $('notification-send').onclick=()=>{const message=$('notification-body').value.trim();if(message)send({type:'notification',title:$('notification-title').value.trim()||'Sistema',message},'Notificação enviada');else toast('Escreva a notificação',true);};
 $('glitch-send').onclick=()=>send({type:'glitch',duration:1200},'Glitch enviado');
 $('clear-all').onclick=()=>send({type:'clear-all'},'Efeitos removidos');
+$('mode-control').click();
 check();
 })();
