@@ -19,7 +19,7 @@ const failedLogins = new Map();
 let activePlayer = null;
 let lastMirrorMap = {};
 let lastInfo = {power:true, unlocked:false, app:'bloqueio', chat:null};
-let effects = {message:null, void:null, notification:null, revision:0};
+let effects = {message:null, void:null, notification:null, secret:false, crack:{level:0}, bug:null, cornersVoid:false, revision:0};
 let commandSeq=0;
 
 function json(res,status,data,headers={}) {
@@ -162,7 +162,7 @@ const server=http.createServer(async(req,res)=>{
    if(!isLocalOrigin(req))return json(res,403,{error:'Origem inválida'});
    const body=await readBody(req,20000);
    const type=String(body.type||'');
-   if(!['navigate','pointer','type','scroll','message','void','notification','clear-all','glitch'].includes(type))return json(res,400,{error:'Comando inválido'});
+   if(!['navigate','pointer','type','scroll','message','void','notification','clear-all','glitch','secret','crack','bug','break-all','repair'].includes(type))return json(res,400,{error:'Comando inválido'});
    const command={id:++commandSeq,type};
    if(type==='navigate'){
     if(!['home','lock','settings','phone','gallery','sinaiszap','google','calculator'].includes(body.target))return json(res,400,{error:'Tela inválida'});
@@ -196,6 +196,11 @@ const server=http.createServer(async(req,res)=>{
    if(type==='void'){
     if(body.clear){effects.void=null;}
     else effects.void={x:Math.max(0,Math.min(100,Number(body.x)||50)),y:Math.max(0,Math.min(100,Number(body.y)||50)),size:Math.max(12,Math.min(110,Number(body.size)||45))};
+    if(!body.clear&&Array.isArray(body.points)&&body.points.length>=3&&body.points.length<=75){
+     const pts=body.points.filter(p=>Array.isArray(p)&&p.length===2&&p.every(v=>Number.isFinite(Number(v))))
+      .map(p=>p.map(v=>Math.round(Math.max(0,Math.min(100,Number(v)))*10)/10));
+     if(pts.length>=3)effects.void.points=pts;
+    }
     effects.revision++;
    }
    if(type==='notification'){
@@ -204,10 +209,28 @@ const server=http.createServer(async(req,res)=>{
     if(!message)return json(res,400,{error:'Notificação vazia'});
     effects.notification={title,message,at:Date.now(),id:command.id};effects.revision++;
    }
-   if(type==='clear-all'){effects={message:null,void:null,notification:null,revision:effects.revision+1};}
+   if(type==='secret'){effects.secret=!!body.enabled;effects.revision++;}
+   if(type==='crack'){
+    const level=Number(body.level);
+    if(!Number.isInteger(level)||level<1||level>3)return json(res,400,{error:'Nível deve ser 1, 2 ou 3'});
+    effects.crack={level};effects.revision++;command.level=level;
+   }
+   if(type==='bug'){
+    effects.bug=body.enabled?{enabled:true,intervalMs:10000}:null;effects.revision++;
+   }
+   if(type==='break-all'){
+    effects.crack={level:3};effects.cornersVoid=true;effects.bug={enabled:true,intervalMs:5000};effects.revision++;command.level=4;
+   }
+   if(type==='repair'){
+    effects.crack={level:0};effects.cornersVoid=false;effects.bug=null;effects.revision++;
+   }
+   if(type==='clear-all'){
+    effects={message:null,void:null,notification:null,secret:false,crack:{level:0},bug:null,cornersVoid:false,revision:effects.revision+1};
+   }
    if(type==='glitch'){command.duration=Math.max(200,Math.min(5000,Number(body.duration)||1000));}
-   if(['message','void','notification','clear-all'].includes(type)){
+   if(['message','void','notification','clear-all','secret','crack','bug','break-all','repair'].includes(type)){
     emitMaster('effects',effects);emitPlayer('effects',effects);
+    if(type==='crack'||type==='break-all')emitPlayer('command',command);
    }else emitPlayer('command',command);
    emitMaster('activity',{event:`Mestre: ${type==='navigate'?'abriu '+command.target:type}`,at:Date.now()});
    return json(res,200,{ok:true,delivered:playerStreams.size>0,effects,command});
