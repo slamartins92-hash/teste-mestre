@@ -1,13 +1,11 @@
 {
-  "name": "teste-mestre",
+  "name": "portal-cascalho",
   "version": "1.0.0",
   "private": true,
-  "description": "Site de mestre em tempo real",
   "scripts": {
-    "start": "node server.js"
+    "start": "node bootstrap.js"
   },
   "engines": {
     "node": ">=18"
-  },
-  "author": "Pingu"
+  }
 }
