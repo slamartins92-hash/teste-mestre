@@ -173,6 +173,8 @@ const server=http.createServer(async(req,res)=>{
     command.phase=body.phase;
     command.x=Math.max(0,Math.min(1,Number(body.x)||0));
     command.y=Math.max(0,Math.min(1,Number(body.y)||0));
+    if(typeof body.targetId==='string' && /^[A-Za-z][A-Za-z0-9_-]{0,79}$/.test(body.targetId))command.targetId=body.targetId;
+    if(Number.isInteger(body.targetIndex)&&body.targetIndex>=0&&body.targetIndex<=7500)command.targetIndex=body.targetIndex;
    }
    if(type==='type'){
     if(typeof body.text!=='string'||body.text.length>160)return json(res,400,{error:'Texto inválido'});
