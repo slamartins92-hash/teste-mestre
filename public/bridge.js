@@ -2,7 +2,8 @@
 const mirror=new URLSearchParams(location.search).has('mirror');
 const device=document.getElementById('device'),glass=device?.querySelector('.glass');
 if(!device||!glass)return;
-const nodes=[...device.querySelectorAll('*')];
+// Inclui o elemento raiz: sua classe .unlocked controla a exibição de todas as telas.
+const nodes=[device,...device.querySelectorAll('*')];
 nodes.forEach((el,i)=>el.dataset.argIndex=String(i));
 const byIndex=new Map(nodes.map((el,i)=>[String(i),el]));
 const css=document.createElement('style');
