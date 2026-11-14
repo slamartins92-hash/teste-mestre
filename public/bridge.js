@@ -8,6 +8,7 @@ nodes.forEach((el,i)=>el.dataset.argIndex=String(i));
 const byIndex=new Map(nodes.map((el,i)=>[String(i),el]));
 const css=document.createElement('style');
 css.textContent='.arg-fx{position:absolute;inset:0;z-index:998;pointer-events:none;overflow:hidden;border-radius:inherit}.arg-void{position:absolute;left:50%;top:50%;width:160px;height:160px;border-radius:47%;transform:translate(-50%,-50%);background:radial-gradient(ellipse,#000 0 22%,#050607 48%,#07090ab0 70%,transparent 88%);filter:blur(2px);display:none;animation:voidbreath 5s infinite alternate}.arg-msg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:white;font:700 22px/1.3 system-ui;text-shadow:0 2px 4px black,0 0 10px black;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;max-width:90%;display:none}.arg-notify{position:absolute;top:42px;left:12px;right:12px;border-radius:16px;padding:13px;background:#252830ef;color:white;border:1px solid #ffffff33;display:none;box-shadow:0 8px 28px #000b;font:12px/1.5 system-ui}.arg-notify strong{display:block;font-size:14px}.arg-glitch{position:absolute;inset:0;display:none;background:repeating-linear-gradient(0deg,transparent 0 4px,#fff3 5px 6px),linear-gradient(100deg,#f006,transparent,#0ff4);mix-blend-mode:screen;animation:argshake .09s steps(2) infinite}@keyframes argshake{to{transform:translate(5px,-3px)}}@keyframes voidbreath{to{filter:blur(6px);border-radius:55% 48% 42% 61%}}.arg-spectator{position:fixed;inset:0;z-index:10000;background:#08090df5;color:white;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;font:14px/1.6 system-ui}.arg-spectator.on{display:flex}';
+css.textContent += '.arg-void.arg-shaped{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0!important;transform:none!important;background:#000!important;filter:blur(3px);animation:arg-shaped-pulse 2.6s ease-in-out infinite alternate}@keyframes arg-shaped-pulse{0%{opacity:.72;filter:blur(4px)}100%{opacity:1;filter:blur(10px)}}.arg-void:not(.arg-shaped){animation:arg-circle-pulse 2.6s ease-in-out infinite alternate}@keyframes arg-circle-pulse{to{transform:translate(-50%,-50%) scale(1.15);filter:blur(6px)}}';
 document.head.append(css);
 const fx=document.createElement('div');fx.className='arg-fx';
 fx.innerHTML='<div class="arg-void"></div><div class="arg-msg"></div><div class="arg-notify"><strong></strong><p></p></div><div class="arg-glitch"></div>';
@@ -17,13 +18,24 @@ let notifyTimer,glitchTimer;
 function applyEffects(s){
  if(!s)return;const v=s.void,m=s.message,n=s.notification;
  voidEl.style.display=v?'block':'none';
- if(v){voidEl.style.left=v.x+'%';voidEl.style.top=v.y+'%';voidEl.style.width=v.size*3+'px';voidEl.style.height=v.size*3+'px';}
+ if(v){
+   const polygon=Array.isArray(v.points)&&v.points.length>=3;
+   voidEl.classList.toggle('arg-shaped',polygon);
+   if(polygon){
+    voidEl.style.clipPath='polygon('+v.points.map(p=>p[0]+'% '+p[1]+'%').join(',')+')';
+    voidEl.style.left='0';voidEl.style.top='0';voidEl.style.width='100%';voidEl.style.height='100%';
+   }else{
+    voidEl.style.clipPath='';
+    voidEl.style.left=v.x+'%';voidEl.style.top=v.y+'%';voidEl.style.width=v.size*3+'px';voidEl.style.height=v.size*3+'px';
+   }
+ }else{voidEl.classList.remove('arg-shaped');voidEl.style.clipPath='';}
  msgEl.style.display=m?'block':'none';
  if(m){msgEl.textContent=m.text;msgEl.style.left=m.x+'%';msgEl.style.top=m.y+'%';msgEl.style.fontSize=m.size+'px';}
  if(n&&n.id!==notifyEl.dataset.id){
   notifyEl.dataset.id=n.id;notifyEl.querySelector('strong').textContent=n.title;notifyEl.querySelector('p').textContent=n.message;
   notifyEl.style.display='block';clearTimeout(notifyTimer);notifyTimer=setTimeout(()=>notifyEl.style.display='none',6500);
  }else if(!n){clearTimeout(notifyTimer);notifyEl.style.display='none';notifyEl.dataset.id='';}
+ window.__ARG_PHASE2__?.apply?.(s);
 }
 function render(items){
  if(!items)return;
@@ -183,6 +195,8 @@ function remoteCommand(c){
   if(c.type==='type'){const el=document.activeElement;
    if(el&&('value' in el)){el.value+=String(c.text||'');el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}}
   if(c.type==='glitch'){glitchEl.style.display='block';clearTimeout(glitchTimer);glitchTimer=setTimeout(()=>glitchEl.style.display='none',c.duration||1000);}
+  if(c.type==='crack')window.__ARG_PHASE2__?.crackSound?.(c.level);
+  if(c.type==='break-all'){window.__ARG_PHASE2__?.crackSound?.(4);window.__ARG_PHASE2__?.animateBreak?.();}
   if(c.type!=='pointer'||c.phase==='up')setTimeout(()=>sync(),140);
  }catch(err){/* Comando isolado: não interrompe os comandos seguintes. */}
 }
