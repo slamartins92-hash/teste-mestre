@@ -67,7 +67,24 @@ function phoneRect(){
  return g?{left:f.left+g.left,top:f.top+g.top,width:g.width,height:g.height}:null;}
  catch(e){return null;}
 }
-function pointer(ev){const r=phoneRect();return r?{x:Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(ev.clientY-r.top)/r.height))}:null;}
+function pointer(ev){
+ const r=phoneRect();
+ return r?{x:Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(ev.clientY-r.top)/r.height))}:null;
+}
+function mirroredTarget(ev){
+ try{
+  const b=frame.getBoundingClientRect();
+  const scaleX=frame.contentWindow.innerWidth/b.width, scaleY=frame.contentWindow.innerHeight/b.height;
+  const hit=frame.contentDocument.elementFromPoint((ev.clientX-b.left)*scaleX,(ev.clientY-b.top)*scaleY);
+  if(!hit)return {};
+  const target=hit.closest?.('button,a,input,textarea,select,[role="button"]')||hit;
+  const i=target.dataset?.argIndex;
+  return {
+   ...(target.id?{targetId:target.id}:{}),
+   ...(i!==undefined&&/^\d+$/.test(i)?{targetIndex:Number(i)}:{})
+  };
+ }catch{return {};}
+}
 function markerPosition(){
  if(mode!=='place'){marker.style.display='none';return;}
  const r=phoneRect(),b=cover.getBoundingClientRect();if(!r)return;
@@ -84,7 +101,10 @@ let queue=Promise.resolve();
 function doPointer(ev,phase){
  const p=pointer(ev);if(!p)return;
  if(mode==='place'&&phase==='up')setPos(p.x,p.y);
- if(mode==='control')queue=queue.then(()=>send({type:'pointer',phase,x:p.x,y:p.y})).catch(()=>{});
+ if(mode==='control'){
+  const hit=mirroredTarget(ev);
+  queue=queue.then(()=>send({type:'pointer',phase,x:p.x,y:p.y,...hit})).catch(()=>{});
+ }
 }
 cover.addEventListener('pointerdown',ev=>{down=true;if(mode==='control')cover.setPointerCapture(ev.pointerId);doPointer(ev,'down');ev.preventDefault();});
 let lastMoveAt=0;
@@ -113,5 +133,16 @@ $('notification-send').onclick=()=>{const message=$('notification-body').value.t
 $('glitch-send').onclick=()=>send({type:'glitch',duration:1200},'Glitch enviado');
 $('clear-all').onclick=()=>send({type:'clear-all'},'Efeitos removidos');
 $('mode-control').click();
+$('preview-expand')?.addEventListener('click',()=>{
+ const card=$('preview-card'),b=$('preview-expand');
+ const expanded=card.classList.toggle('expanded');
+ b.textContent=expanded?'⤡ Voltar ao painel':'⤢ Ampliar celular';
+ b.setAttribute('aria-pressed',String(expanded));
+ document.body.classList.toggle('preview-expanded',expanded);
+ if(expanded)setTimeout(()=>window.dispatchEvent(new Event('resize')),100);
+});
+document.addEventListener('keydown',ev=>{
+ if(ev.key==='Escape'&&$('preview-card')?.classList.contains('expanded'))$('preview-expand')?.click();
+});
 check();
 })();
