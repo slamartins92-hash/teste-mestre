@@ -51,6 +51,10 @@ function render(items){
  }
 }
 if(mirror){
+ document.body.classList.add('arg-master-mirror');
+ const masterSize=document.createElement('style');
+ masterSize.textContent='body.arg-master-mirror .stage{padding:6px;min-height:100svh}body.arg-master-mirror .device{width:min(555px,calc(100vw - 16px),calc((100svh - 18px) * .477))!important}';
+ document.head.append(masterSize);
  window.addEventListener('message',e=>{
   if(e.origin!==location.origin||e.source!==window.parent)return;
   if(e.data?.type==='arg-ping')window.parent.postMessage({type:'arg-ready'},location.origin);
