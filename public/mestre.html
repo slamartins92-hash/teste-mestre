@@ -23,6 +23,12 @@ body.preview-expanded{overflow:hidden}
 .log{height:160px;overflow:auto;display:flex;flex-direction:column-reverse;gap:9px;font-size:11px;color:#a9aeba}.log-entry{border-top:1px solid #252731;padding-top:8px}.log-entry time{font-variant-numeric:tabular-nums;color:#747b88;margin-right:7px}.toast{position:fixed;bottom:20px;right:20px;background:#262934;border:1px solid #505462;padding:13px 17px;border-radius:11px;box-shadow:0 10px 32px #0008;font-size:12px;z-index:25;max-width:min(370px,90%)}
 @media(max-width:900px){main{grid-template-columns:1fr;padding:17px;gap:17px}.preview-card{position:static}.preview-viewport{height:min(920px,75svh);min-height:590px;max-height:none}}
 @media(max-width:520px){header.top{padding:14px 15px;height:auto}.brand h1{font-size:15px}.brand-logo{height:39px;width:39px}.head-right .status{font-size:11px}.head-right{gap:8px}main{padding:12px}.section{padding:16px}.app-grid{grid-template-columns:repeat(4,1fr);gap:6px}.app-grid button{font-size:10px}.preview-card{padding:12px}.preview-viewport{height:680px;max-height:none}}
+.void-draw-layer{position:absolute;inset:0;width:100%;height:100%;z-index:9;pointer-events:none;overflow:visible}
+.void-draw-layer polygon{fill:#09090942;stroke:#f86f91;stroke-width:2;stroke-dasharray:7 4;stroke-linejoin:round;filter:drop-shadow(0 0 4px #fd567c)}
+.mode-row{flex-wrap:wrap}.mode-row button{min-width:120px}.mode-row button:last-child.active{background:#482030;border-color:#f16083}
+.preview-card:not(.arg-mark-mode) .void-draw-layer{display:none}
+.preview-card.arg-mark-mode .preview-cover{cursor:crosshair}
+.preview-card.arg-mark-mode .point-marker{display:none!important}
 </style>
 </head>
 <body>
@@ -46,11 +52,13 @@ body.preview-expanded{overflow:hidden}
   <div class="preview-viewport" id="viewport">
    <iframe src="about:blank" id="preview-frame" title="Espelho do celular do ARG" scrolling="no"></iframe>
    <div class="preview-cover" id="preview-cover" aria-label="Área de seleção ou controle remoto"></div>
+   <svg id="void-draw-layer" class="void-draw-layer" aria-hidden="true"><polygon id="void-draw-shape" points=""/></svg>
    <div class="point-marker" id="point-marker" style="display:none"></div>
   </div>
-  <div class="mode-row"><button type="button" id="mode-place" class="active">◎ Escolher posição</button><button type="button" id="mode-control">↖ Controlar celular</button></div>
+  <div class="mode-row"><button type="button" id="mode-place" class="active">◎ Escolher posição</button><button type="button" id="mode-control">↖ Controlar celular</button><button type="button" id="mode-mark">✎ Marcar Vazio</button></div>
+  <div class="actions" style="margin:9px 0 4px"><button type="button" id="void-mark-clear" class="btn alt">Limpar linha do Vazio</button><span id="void-mark-info" class="small">Selecione “Marcar Vazio” para desenhar.</span></div>
   <div class="preview-foot"><span>Posição: <b id="position-label">50%, 50%</b></span><span id="mirror-status">Aguardando sincronização</span></div>
-  <p class="small">No modo <b>Escolher posição</b>, toque na prévia para colocar o texto branco ou o Vazio. No modo <b>Controlar celular</b>, clique, arraste ou role para interagir com o celular do jogador.</p>
+  <p class="small">No modo <b>Marcar Vazio</b>, contorne a área desejada arrastando o mouse sobre o celular. A linha é exclusiva do Mestre e só é exibida nesse modo. No modo <b>Controlar celular</b>, clique e arraste para interagir.</p>
  </aside>
  <div class="control-stack">
   <section class="section">
@@ -66,6 +74,11 @@ body.preview-expanded{overflow:hidden}
    <div class="actions"><button id="type-send" class="btn alt">Digitar</button></div>
   </section>
   <section class="section">
+   <div class="section-title"><div><h2>Segunda tela do SinaisZap</h2><p>Só você pode liberar a lista secreta com #02 (Maria) e V4. A conversa original de Maria é preservada.</p></div><span class="section-icon">☰</span></div>
+   <div class="actions"><button id="secret-enable" class="btn">Revelar #02 e V4</button><button id="secret-disable" class="btn alt">Voltar ao SinaisZap normal</button></div>
+   <p class="small" id="secret-status">Aguardando ativação.</p>
+  </section>
+  <section class="section">
    <div class="section-title"><div><h2>Texto misterioso</h2><p>Surge branco, diretamente sobre a tela. Nenhum nome ou indicação do Mestre.</p></div><span class="section-icon">⌁</span></div>
    <div class="fields">
     <div class="field full"><label for="message">Mensagem</label><textarea id="message" maxlength="300" placeholder="VOCÊ NÃO DEVERIA ESTAR AQUI."></textarea></div>
@@ -76,7 +89,7 @@ body.preview-expanded{overflow:hidden}
    <div class="actions"><button id="message-show" class="btn">Mostrar texto branco</button><button id="message-clear" class="btn subtle">Remover texto</button></div>
   </section>
   <section class="section">
-   <div class="section-title"><div><h2>Manifestação do Vazio</h2><p>Escolha onde a mancha escura se forma e quanto espaço ela ocupa.</p></div><span class="section-icon">◉</span></div>
+   <div class="section-title"><div><h2>Manifestação do Vazio</h2><p>Escolha um ponto ou use Marcar Vazio para desenhar uma área. Ao aparecer, o Vazio pulsa dentro da área marcada.</p></div><span class="section-icon">◉</span></div>
    <div class="fields"><div class="field full"><div class="range-label"><label for="void-size">Tamanho da manifestação</label><output id="void-size-value">45%</output></div><input id="void-size" type="range" min="12" max="110" value="45"></div></div>
    <div class="actions"><button id="void-show" class="btn">Fazer Vazio aparecer</button><button id="void-clear" class="btn subtle">Remover Vazio</button></div>
   </section>
@@ -84,6 +97,15 @@ body.preview-expanded{overflow:hidden}
    <div class="section-title"><div><h2>Notificação falsa</h2><p>Enviada como se fosse do próprio celular virtual, sem assinatura do Mestre.</p></div><span class="section-icon">♢</span></div>
    <div class="fields"><div class="field full"><label for="notification-title">Título</label><input id="notification-title" maxlength="55" value="Sistema"></div><div class="field full"><label for="notification-body">Mensagem</label><textarea id="notification-body" maxlength="220" placeholder="Nova atividade detectada."></textarea></div></div>
    <div class="actions"><button id="notification-send" class="btn">Enviar notificação</button><button id="glitch-send" class="btn alt">⚡ Glitch rápido</button></div>
+  </section>
+  <section class="section">
+   <div class="section-title"><div><h2>Quebrar celular</h2><p>Trincas, perfuração central, ruídos de vidro e interferências no celular dos jogadores.</p></div><span class="section-icon">✶</span></div>
+   <div class="fields"><div class="field full"><label for="damage-level">Nível de tela quebrada</label><select id="damage-level"><option value="1">1 — Trincas leves</option><option value="2">2 — Trincas maiores</option><option value="3">3 — Furo no centro</option></select></div></div>
+   <div class="actions"><button class="btn" id="damage-apply">Quebrar tela</button><button class="btn alt" id="damage-repair">Restaurar tela</button></div>
+   <div class="actions"><button class="btn alt" id="bug-enable">Ativar bug — 10 em 10s</button><button class="btn subtle" id="bug-disable">Desativar bug</button></div>
+   <div class="actions"><button class="btn" id="damage-total">QUEBRAR POR COMPLETO</button></div>
+   <p class="small">Quebra completa: nível 3, Vazio nos quatro cantos, trinca forte e bugs de 1,5s a cada 5 segundos. O celular reaparece danificado após o efeito.</p>
+   <p class="small" id="damage-status">Nenhum dano ativo.</p>
   </section>
   <section class="section">
    <div class="section-title"><div><h2>Controle de emergência</h2><p>Desative todos os efeitos caso algo não saia como previsto.</p></div><span class="section-icon">⏻</span></div>
