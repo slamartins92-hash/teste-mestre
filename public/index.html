@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08090d">
+  <title>teste</title>
+  <style>
+    :root { color-scheme: dark; --white: #f2f2f5; --muted: #a4a6b1; --red: #f04f66; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100svh; background:radial-gradient(ellipse at 50% 25%, #191922 0%, #08090e 54%, #07080b 100%); color:var(--white); }
+    button,textarea,input { font:inherit; }
+    button { cursor:pointer; }
+    .stage { min-height:100svh; display:flex; align-items:center; justify-content:center; flex-direction:column; padding:16px; gap:14px; }
+    .device { position:relative; flex:none; width:min(370px, calc((100svh - 40px) * 0.488), calc(100vw - 38px)); aspect-ratio: 9/19.4; padding:9px; border-radius:47px; background:linear-gradient(145deg, #4b4b50, #16171c 32%, #0a0b0f 65%, #414148); box-shadow:0 0 0 2px #44454b, 0 18px 60px #000a, inset 0 1px 3px #ffffff40; }
+    .device::before { content:''; position:absolute; width:4px; height:11%; top:24%; right:-6px; background:#555760; border-radius:0 3px 3px 0; }
+    .screen { position:relative; width:100%; height:100%; overflow:hidden; isolation:isolate; border-radius:40px; background:radial-gradient(ellipse at 65% 67%, #30151b 0%, #100e13 34%, #07080d 70%); box-shadow:inset 0 0 0 1px #ffffff0b; }
+    .screen::before { content:''; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,#05050934, transparent 42%, #04040a88 100%); }
+    .island { position:absolute; z-index:9; top:10px; left:50%; transform:translateX(-50%); width:29%; height:25px; border-radius:18px; background:#030405; box-shadow:0 1px 1px #ffffff13; }
+    .island::after { content:''; position:absolute; right:12%; top:7px; width:7px; height:7px; border-radius:50%; background:#182232; box-shadow:inset 0 0 2px #4e5970; }
+    .top { position:absolute; top:47px; left:22px; right:22px; z-index:23; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .brand { font-size:10px; letter-spacing:.28em; color:#d9d7df; font-weight:750; }
+    .master-btn { background:#0f11189e; border:1px solid #ffffff30; border-radius:999px; color:#f0f1f5; font-size:10px; font-weight:700; padding:9px 11px; white-space:nowrap; letter-spacing:.02em; }
+    .master-btn:hover, .master-btn:focus-visible { border-color:#f57c8d; outline:none; }
+    .clock-wrap { position:absolute; top:23%; left:8%; right:8%; display:flex; flex-direction:column; align-items:center; gap:6px; transition:opacity .35s; }
+    .time { font-size:clamp(50px, 12vw, 76px); font-weight:250; letter-spacing:-.065em; line-height:1.02; font-variant-numeric:tabular-nums; }
+    .date { color:#d5d1d9; font-size:13px; text-align:center; text-transform:capitalize; }
+    .quote { position:absolute; bottom:17%; width:100%; text-align:center; color:#85838c; font-size:10px; letter-spacing:.13em; }
+    .homebar { position:absolute; bottom:10px; width:36%; height:4px; background:#ffffffd1; border-radius:8px; left:32%; z-index:10; }
+    .status { position:absolute; left:0; right:0; bottom:7.5%; text-align:center; font-size:10px; color:#bab8c4; letter-spacing:.04em; }
+    .indicator { display:inline-block; width:6px; height:6px; border-radius:50%; background:#8f939a; margin-right:6px; vertical-align:middle; }
+    .status.online .indicator { background:#7fd3ac; box-shadow:0 0 10px #7fd3ac66; }
+    .transmission { position:absolute; z-index:12; inset:0; padding:105px 24px 76px; display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; background:radial-gradient(ellipse at 50% 50%, #2a101a 0%, #08070be8 72%); }
+    .transmission.visible { display:flex; animation:fadein .3s ease both; }
+    .transmission::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(0deg,transparent 0 4px,#ffffff08 5px 6px); opacity:.2; pointer-events:none; }
+    .trans-label { font-size:10px; letter-spacing:.27em; color:#ff8d9e; margin-bottom:18px; font-weight:800; }
+    .trans-text { font-size:clamp(22px, 6vw, 30px); font-weight:650; line-height:1.3; max-width:100%; overflow-wrap:anywhere; text-shadow:0 0 25px #f5405840; white-space:pre-wrap; }
+    .trans-line { margin-top:24px; width:74px; height:2px; background:linear-gradient(90deg, transparent, #f16479, transparent); }
+    .dialog { display:none; position:absolute; z-index:40; inset:0; padding:22px; align-items:center; justify-content:center; background:#030408d9; backdrop-filter:blur(8px); }
+    .dialog.visible { display:flex; }
+    .panel { width:100%; max-height:89%; overflow:auto; border:1px solid #ffffff24; background:#18191f; border-radius:23px; padding:23px 19px; box-shadow:0 20px 38px #0009; }
+    .panel-head { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .panel h2 { margin:0; font-size:18px; letter-spacing:-.02em; }
+    .close { border:0; background:#2a2c33; color:#ddd; border-radius:50%; width:29px; height:29px; font-size:20px; line-height:1; }
+    .helper { font-size:12px; color:var(--muted); line-height:1.55; margin:12px 0 18px; }
+    .field-label { display:block; color:#e0e1e8; font-size:12px; font-weight:600; margin-bottom:8px; }
+    .field { display:block; width:100%; padding:13px 12px; border:1px solid #444650; outline:0; border-radius:12px; color:white; background:#111319; font-size:13px; }
+    .field:focus { border-color:#ed657a; }
+    textarea.field { min-height:98px; max-height:170px; resize:vertical; }
+    .actions { display:flex; flex-direction:column; gap:9px; margin-top:13px; }
+    .action { border:0; border-radius:12px; background:#d93e58; color:white; padding:12px 13px; font-weight:750; font-size:13px; }
+    .action:disabled { opacity:.55; cursor:default; }
+    .secondary { background:#2b2d36; border:1px solid #4a4c57; }
+    .feedback { min-height:18px; margin:12px 0 0; color:#ff9fa9; font-size:11px; line-height:1.5; }
+    .feedback.success { color:#8fe0b4; }
+    .current { background:#101217; border:1px solid #363842; border-radius:11px; margin-top:16px; padding:11px 12px; font-size:11px; color:#c9c9d0; line-height:1.5; overflow-wrap:anywhere; }
+    .current strong { display:block; margin-bottom:4px; color:#f2f3f6; }
+    .page-note { max-width:440px; color:#92929d; text-align:center; font-size:11px; line-height:1.5; }
+    .page-note b { color:#e6e4ea; }
+    @keyframes fadein { from { opacity:0; transform:scale(1.02); } to { opacity:1; transform:scale(1); } }
+    @media(max-height:650px) { .top { top:35px; } .clock-wrap { top:22%; } .island { top:5px; height:20px; } .transmission { padding-top:78px; } .panel { padding:17px 14px; } .dialog { padding:13px; } }
+    @media(prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="device" aria-label="Celular virtual teste">
+      <div class="screen">
+        <div class="island" aria-hidden="true"></div>
+        <header class="top">
+          <span class="brand">teste</span>
+          <button type="button" class="master-btn" id="master-open">⚙ Opções de mestre</button>
+        </header>
+        <section class="clock-wrap" id="clock-wrap" aria-label="Hora e data atuais">
+          <time class="time" id="time">00:00</time>
+          <div class="date" id="date">Carregando data...</div>
+        </section>
+        <div class="quote" id="quote">NÃO HÁ NADA AQUI... AINDA.</div>
+        <section class="transmission" id="transmission" aria-live="polite" aria-hidden="true">
+          <div class="trans-label">✦ MENSAGEM DO MESTRE ✦</div>
+          <div class="trans-text" id="trans-text"></div>
+          <div class="trans-line"></div>
+        </section>
+        <p class="status" id="status"><span class="indicator"></span><span id="status-text">Conectando...</span></p>
+        <div class="homebar" aria-hidden="true"></div>
+        <div class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-hidden="true">
+          <section class="panel">
+            <div class="panel-head"><h2 id="dialog-title">Opções de mestre</h2><button class="close" id="close" aria-label="Fechar">×</button></div>
+            <div id="login-panel">
+              <p class="helper">Área exclusiva do mestre. Digite a senha para acessar.</p>
+              <form id="login-form">
+                <label class="field-label" for="password">Senha</label>
+                <input id="password" class="field" type="password" autocomplete="off" placeholder="••••••••" required>
+                <div class="actions"><button class="action" type="submit" id="login-button">Entrar</button></div>
+              </form>
+            </div>
+            <div id="admin-panel" hidden>
+              <p class="helper">O que você enviar vai aparecer na tela de <b>todas as pessoas conectadas</b>.</p>
+              <form id="broadcast-form">
+                <label class="field-label" for="message">Mostrar mensagem para todos</label>
+                <textarea id="message" class="field" maxlength="240" placeholder="Escreva o que vai aparecer na tela..." required></textarea>
+                <div class="actions">
+                  <button class="action" type="submit" id="send">Exibir para todos</button>
+                  <button class="action secondary" type="button" id="clear">Remover mensagem de todos</button>
+                  <button class="action secondary" type="button" id="logout">Sair do modo mestre</button>
+                </div>
+              </form>
+              <div class="current"><strong>Mensagem atual</strong><span id="current">Nenhuma mensagem ativa.</span></div>
+            </div>
+            <p class="feedback" id="feedback" role="status"></p>
+          </section>
+        </div>
+      </div>
+    </div>
+    <div class="page-note" id="page-note">Site de teste • Data e hora do dispositivo • <b>Comandos em tempo real</b></div>
+  </main>
+  <script>window.__SINAIS_PREVIEW_PASSWORD = 'sinais';</script>
+  <script>
+    (() => {
+      'use strict';
+      const $ = id => document.getElementById(id);
+      const time = $('time'); const date = $('date');
+      const dialog = $('dialog'); const loginPanel = $('login-panel'); const adminPanel = $('admin-panel');
+      const feedback = $('feedback'); const current = $('current'); const status = $('status');
+      const trans = $('transmission'); const transText = $('trans-text');
+      let admin = false; let demo = false;
+      let activeState = { active: false, text: '' };
+      let demoChannel = null;
+      const now = () => {
+        const d = new Date();
+        time.textContent = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false }).format(d);
+        date.textContent = new Intl.DateTimeFormat('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).format(d);
+        time.dateTime = d.toISOString();
+      };
+      now(); setInterval(now, 1000);
+      const setFeedback = (message, success = false) => { feedback.textContent = message; feedback.classList.toggle('success', success); };
+      function displayState(data) {
+        activeState = data || { active:false, text:'' };
+        trans.classList.toggle('visible', !!activeState.active);
+        trans.setAttribute('aria-hidden', activeState.active ? 'false' : 'true');
+        transText.textContent = activeState.text || '';
+        current.textContent = activeState.active ? activeState.text : 'Nenhuma mensagem ativa.';
+      }
+      function setConnected(connected) {
+        status.classList.toggle('online', !!connected);
+        $('status-text').textContent = demo ? 'Modo teste local' : connected ? 'Sincronização ativa' : 'Reconectando...';
+      }
+      function openDialog() {
+        setFeedback('');
+        loginPanel.hidden = admin;
+        adminPanel.hidden = !admin;
+        dialog.classList.add('visible'); dialog.setAttribute('aria-hidden', 'false');
+        if (!admin) setTimeout(() => $('password').focus(), 50);
+      }
+      function closeDialog() { dialog.classList.remove('visible'); dialog.setAttribute('aria-hidden','true'); $('password').value=''; setFeedback(''); }
+      $('master-open').addEventListener('click', openDialog);
+      $('close').addEventListener('click', closeDialog);
+      dialog.addEventListener('click', e => { if (e.target === dialog) closeDialog(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDialog(); });
+      async function request(url, options = {}) {
+        const res = await fetch(url, { credentials:'same-origin', ...options, headers: { 'content-type':'application/json', ...(options.headers || {}) } });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Falha na conexão');
+        return data;
+      }
+      function demoStore(data) {
+        displayState(data);
+        try { localStorage.setItem('sinais_state_demo', JSON.stringify(data)); } catch (_) {}
+        if (demoChannel) demoChannel.postMessage(data);
+      }
+      function startDemo() {
+        demo = true;
+        try {
+          const saved = JSON.parse(localStorage.getItem('sinais_state_demo') || 'null');
+          if (saved) displayState(saved);
+          demoChannel = new BroadcastChannel('sinais_state_demo');
+          demoChannel.onmessage = e => displayState(e.data);
+        } catch (_) {}
+        $('page-note').innerHTML = 'Prévia local • Sincroniza apenas abas deste navegador. <b>Para atingir todos, publique o servidor do ZIP.</b>';
+        setConnected(true);
+      }
+      async function connect() {
+        try {
+          const state = await request('/api/state');
+          if (!state || typeof state.active !== 'boolean') throw new Error('Backend ausente');
+          displayState(state); setConnected(true);
+          try { const me = await request('/api/me'); admin = !!me.admin; } catch (_) {}
+          if (typeof EventSource !== 'undefined') {
+            const source = new EventSource('/api/events');
+            source.addEventListener('state', e => { try { displayState(JSON.parse(e.data)); setConnected(true); } catch (_) {} });
+            source.onerror = () => setConnected(false);
+            source.onopen = () => setConnected(true);
+          }
+          // Backup caso a hospedagem suspenda conexões SSE.
+          setInterval(async () => { try { displayState(await request('/api/state')); setConnected(true); } catch (_) { setConnected(false); } }, 5000);
+        } catch (_) {
+          setConnected(false);
+          $('page-note').textContent = 'Servidor temporariamente indisponível. Atualize a página em alguns instantes.';
+          $('login-button').disabled = true;
+          setFeedback('Não foi possível conectar ao servidor.');
+        }
+      }
+      connect();
+      $('login-form').addEventListener('submit', async e => {
+        e.preventDefault(); setFeedback('');
+        const password = $('password').value;
+        $('login-button').disabled = true;
+        try {
+          if (demo) {
+            throw new Error('Prévia local desativada');
+          } else await request('/api/login', { method:'POST', body:JSON.stringify({ password }) });
+          admin = true; loginPanel.hidden = true; adminPanel.hidden = false; $('password').value='';
+          setFeedback('Acesso do mestre liberado.', true);
+        } catch (err) { setFeedback(err.message); }
+        $('login-button').disabled = false;
+      });
+      $('broadcast-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const text = $('message').value.trim();
+        if (!text) return;
+        $('send').disabled = true; setFeedback('');
+        try {
+          if (demo) demoStore({ active:true, text, revision:Date.now() });
+          else {
+            const data = await request('/api/broadcast', { method:'POST', body:JSON.stringify({ text }) });
+            displayState(data.state);
+          }
+          setFeedback('Mensagem exibida para todos' + (demo ? ' nesta demonstração.' : '.'), true);
+          closeDialog();
+        } catch (err) { setFeedback(err.message); }
+        $('send').disabled = false;
+      });
+      $('clear').addEventListener('click', async () => {
+        setFeedback('');
+        try {
+          if (demo) demoStore({ active:false, text:'', revision:Date.now() });
+          else { const data = await request('/api/broadcast', { method:'DELETE' }); displayState(data.state); }
+          setFeedback('Mensagem removida.', true);
+        } catch (err) { setFeedback(err.message); }
+      });
+      $('logout').addEventListener('click', async () => {
+        try { if (!demo) await request('/api/logout', { method:'POST' }); } catch (_) {}
+        admin = false; loginPanel.hidden = false; adminPanel.hidden = true; closeDialog();
+      });
+    })();
+  </script>
+</body>
+</html>
