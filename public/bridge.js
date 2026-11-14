@@ -129,17 +129,35 @@ function at(x,y){
  return document.elementFromPoint(b.left+b.width*x,b.top+b.height*y);
 }
 let pressed=null;
+function remoteTarget(c,x,y){
+ let target=null;
+ if(c.targetId)target=document.getElementById(c.targetId);
+ if(!target&&Number.isInteger(c.targetIndex))target=byIndex.get(String(c.targetIndex));
+ if(!target?.isConnected || !target.getClientRects().length || getComputedStyle(target).visibility==='hidden'){
+  target=document.elementFromPoint(x,y);
+ }
+ return target||glass;
+}
 function remotePointer(c){
  const b=glass.getBoundingClientRect(),x=b.left+b.width*c.x,y=b.top+b.height*c.y;
- const target=document.elementFromPoint(x,y)||glass;
+ const target=remoteTarget(c,x,y);
  const evt=new PointerEvent('pointer'+c.phase,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:51,isPrimary:true,clientX:x,clientY:y});
- if(c.phase==='down'){pressed={x,y,target};target.dispatchEvent(evt);}
- if(c.phase==='move'){target.dispatchEvent(evt);document.dispatchEvent(evt);}
+ if(c.phase==='down'){
+  pressed={x,y,target};
+  target.dispatchEvent(evt);
+ }
+ if(c.phase==='move'){
+  // O gesto de desbloqueio escuta o evento no window.
+  window.dispatchEvent(evt);
+ }
  if(c.phase==='up'){
-  target.dispatchEvent(evt);document.dispatchEvent(evt);
-  if(pressed&&Math.hypot(x-pressed.x,y-pressed.y)<14){
-   const clickable=target.closest('button,a,input,textarea,select,[role="button"]');
-   if(clickable){clickable.focus?.();clickable.click?.();}else target.click?.();
+  target.dispatchEvent(evt);window.dispatchEvent(evt);
+  if(pressed&&Math.hypot(x-pressed.x,y-pressed.y)<18){
+   const original=pressed.target;
+   const clickable=(original?.closest?.('button,a,input,textarea,select,[role="button"]'))||
+                   (target?.closest?.('button,a,input,textarea,select,[role="button"]'));
+   if(clickable){clickable.focus?.();clickable.click?.();}
+   else (original||target).click?.();
   }
   pressed=null;
  }
