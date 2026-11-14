@@ -74,7 +74,11 @@ function crackSound(lvl){
 function apply(e){
  if(!e)return;
  const now=!!e.secret;
- if(secretActive!==now){secretActive=now;portal.classList.remove('arg-in-chat');if(now&&!mirror)window.__ARG_LOCAL_CONTROLS__?.navigate?.('sinaiszap');}
+ if(secretActive!==now){
+  const wasActive=secretActive;
+  secretActive=now;portal.classList.remove('arg-in-chat');
+  if(!mirror&&(now||(wasActive&&app.classList.contains('is-open'))))window.__ARG_LOCAL_CONTROLS__?.navigate?.('sinaiszap');
+ }
  displayPortal();
  layer.dataset.level=String(Math.max(0,Math.min(3,Number(e.crack?.level)||0)));
  corners.classList.toggle('arg-active',!!e.cornersVoid);
