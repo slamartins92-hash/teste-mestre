@@ -4076,6 +4076,8 @@
       window.__ARG_LOCAL_CONTROLS__ = {
         navigate(target) {
           if (device.classList.contains('off')) togglePower();
+          // Um comando remoto de navegação não deve falhar por causa do tempo de erro do padrão.
+          if (patternCooldown) resetPattern();
           if (target === 'lock') {
             closeMiniApp(); closeSettings(); closeDialer();
             if (sheetOpen) closeSheet();
