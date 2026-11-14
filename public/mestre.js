@@ -19,7 +19,7 @@ function postFrame(type,props={}){if(ready)frame.contentWindow?.postMessage({typ
 function show(){
  login.classList.add('hidden');dashboard.classList.remove('hidden');
  if(!stream)connect();
- if(frame.getAttribute('src')!=='/?mirror=1&v=20261114d')frame.setAttribute('src','/?mirror=1&v=20261114d');
+ if(frame.getAttribute('src')!=='/?mirror=1&v=p2b')frame.setAttribute('src','/?mirror=1&v=p2b');
 }
 async function check(){
  try{const r=await fetch('/api/master/me',{credentials:'same-origin'});const d=await r.json();
