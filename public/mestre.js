@@ -18,7 +18,7 @@ function postFrame(type,props={}){if(ready)frame.contentWindow?.postMessage({typ
 function show(){
  login.classList.add('hidden');dashboard.classList.remove('hidden');
  if(!stream)connect();
- if(frame.getAttribute('src')!=='/?mirror=1&v=20261114b')frame.setAttribute('src','/?mirror=1&v=20261114b');
+ if(frame.getAttribute('src')!=='/?mirror=1&v=20261114c')frame.setAttribute('src','/?mirror=1&v=20261114c');
 }
 async function check(){
  try{const r=await fetch('/api/master/me',{credentials:'same-origin'});const d=await r.json();
