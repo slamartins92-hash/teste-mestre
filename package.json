@@ -1,0 +1,12 @@
+{
+  "name": "teste-mestre",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site de mestre em tempo real",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
