@@ -35,6 +35,7 @@ body.preview-expanded{overflow:hidden}
 #mode-place,#mode-control,#mode-mark,#void-mark-clear,#preview-expand{position:relative;z-index:21;pointer-events:auto!important;cursor:pointer;touch-action:manipulation}
 #preview-cover{pointer-events:auto!important;touch-action:none!important;cursor:crosshair}
 #void-draw-layer,#void-draw-shape,#point-marker{pointer-events:none!important}
+#void-custom-options[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -95,9 +96,21 @@ body.preview-expanded{overflow:hidden}
    <div class="actions"><button id="message-show" class="btn">Mostrar texto branco</button><button id="message-clear" class="btn subtle">Remover texto</button></div>
   </section>
   <section class="section">
-   <div class="section-title"><div><h2>Manifestação do Vazio</h2><p>Escolha um ponto ou use Marcar Vazio para desenhar uma área. Ao aparecer, o Vazio pulsa dentro da área marcada.</p></div><span class="section-icon">◉</span></div>
-   <div class="fields"><div class="field full"><div class="range-label"><label for="void-size">Tamanho da manifestação</label><output id="void-size-value">45%</output></div><input id="void-size" type="range" min="12" max="110" value="45"></div></div>
+   <div class="section-title"><div><h2>Manifestação do Vazio</h2><p>Controle a escuridão que surge nos quatro cantos da tela, ou desenhe uma área personalizada.</p></div><span class="section-icon">◉</span></div>
+   <div class="fields">
+    <div class="field full"><label for="void-level">Nível do Vazio</label>
+     <select id="void-level">
+      <option value="1">Nível 1 — Vazio nos cantos</option>
+      <option value="2">Nível 2 — Vazio maior</option>
+      <option value="3">Nível 3 — Vazio bem grande</option>
+      <option value="custom">Personalizado — área marcada ou posição</option>
+     </select>
+    </div>
+    <div class="field full" id="void-custom-options" hidden><div class="range-label"><label for="void-size">Tamanho no modo personalizado</label><output id="void-size-value">45%</output></div><input id="void-size" type="range" min="12" max="110" value="45"></div>
+   </div>
+   <p class="small" id="void-hint">Nível 1: igual ao Vazio dos quatro cantos da quebra completa, sem trincar a tela.</p>
    <div class="actions"><button id="void-show" class="btn">Fazer Vazio aparecer</button><button id="void-clear" class="btn subtle">Remover Vazio</button></div>
+   <p class="small" id="void-status" aria-live="polite">Vazio desativado.</p>
   </section>
   <section class="section">
    <div class="section-title"><div><h2>Notificação falsa</h2><p>Enviada como se fosse do próprio celular virtual, sem assinatura do Mestre.</p></div><span class="section-icon">♢</span></div>
@@ -122,6 +135,6 @@ body.preview-expanded{overflow:hidden}
 </main>
 </div>
 <div id="toast" class="toast hidden" role="status"></div>
-<script src="/mestre.js?v=correcao-141126a" defer></script>
+<script src="/mestre.js?v=vazio-niveis-141126" defer></script>
 </body>
 </html>

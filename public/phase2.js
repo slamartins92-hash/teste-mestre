@@ -81,7 +81,11 @@ function apply(e){
  }
  displayPortal();
  layer.dataset.level=String(Math.max(0,Math.min(3,Number(e.crack?.level)||0)));
- corners.classList.toggle('arg-active',!!e.cornersVoid);
+ // Nível 1 mantém os mesmos cantos da quebra completa; 2 e 3 ampliam a sombra.
+ const voidLevel=e.void?.mode==='corners'?Number(e.void.level):0;
+ const cornerLevel=Math.max(e.cornersVoid?1:0,Number.isInteger(voidLevel)&&voidLevel>=1&&voidLevel<=3?voidLevel:0);
+ corners.dataset.level=String(cornerLevel);
+ corners.classList.toggle('arg-active',cornerLevel>0);
  manageBug(e.bug);
 }
 window.__ARG_PHASE2__={apply,crackSound,animateBreak,pulseGlitch};

@@ -197,11 +197,17 @@ const server=http.createServer(async(req,res)=>{
    }
    if(type==='void'){
     if(body.clear){effects.void=null;}
-    else effects.void={x:Math.max(0,Math.min(100,Number(body.x)||50)),y:Math.max(0,Math.min(100,Number(body.y)||50)),size:Math.max(12,Math.min(110,Number(body.size)||45))};
-    if(!body.clear&&Array.isArray(body.points)&&body.points.length>=3&&body.points.length<=75){
-     const pts=body.points.filter(p=>Array.isArray(p)&&p.length===2&&p.every(v=>Number.isFinite(Number(v))))
-      .map(p=>p.map(v=>Math.round(Math.max(0,Math.min(100,Number(v)))*10)/10));
-     if(pts.length>=3)effects.void.points=pts;
+    else if(body.mode==='corners'){
+     const level=Number(body.level);
+     if(!Number.isInteger(level)||level<1||level>3)return json(res,400,{error:'Nível do Vazio deve ser 1, 2 ou 3'});
+     effects.void={mode:'corners',level};
+    }else{
+     effects.void={mode:'custom',x:Math.max(0,Math.min(100,Number(body.x)||50)),y:Math.max(0,Math.min(100,Number(body.y)||50)),size:Math.max(12,Math.min(110,Number(body.size)||45))};
+     if(Array.isArray(body.points)&&body.points.length>=3&&body.points.length<=75){
+      const pts=body.points.filter(p=>Array.isArray(p)&&p.length===2&&p.every(v=>Number.isFinite(Number(v))))
+       .map(p=>p.map(v=>Math.round(Math.max(0,Math.min(100,Number(v)))*10)/10));
+      if(pts.length>=3)effects.void.points=pts;
+     }
     }
     effects.revision++;
    }

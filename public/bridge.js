@@ -17,8 +17,9 @@ const voidEl=fx.querySelector('.arg-void'),msgEl=fx.querySelector('.arg-msg'),no
 let notifyTimer,glitchTimer;
 function applyEffects(s){
  if(!s)return;const v=s.void,m=s.message,n=s.notification;
- voidEl.style.display=v?'block':'none';
- if(v){
+ const corners=!!v&&v.mode==='corners';
+ voidEl.style.display=v&&!corners?'block':'none';
+ if(v&&!corners){
    const polygon=Array.isArray(v.points)&&v.points.length>=3;
    voidEl.classList.toggle('arg-shaped',polygon);
    if(polygon){

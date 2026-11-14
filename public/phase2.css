@@ -34,3 +34,19 @@
 #arg-secret-entries .arg-secret-base{display:block;animation:arg-base-flicker 8s steps(1,end) infinite}
 @keyframes arg-base-flicker{0%,69%,76%,79%,83%,100%{opacity:1}70%,75%,80%,82%{opacity:0}}
 @media(prefers-reduced-motion:reduce){#arg-secret-entries .arg-secret-base{animation:none}}
+
+/* Níveis independentes do Vazio: 1 = cantos originais; 2 = maior; 3 = grande. */
+.arg-corner-void[data-level="2"]{
+ background:
+  radial-gradient(ellipse at 0% 0%,#000 0 20%,#000e 34%,transparent 57%),
+  radial-gradient(ellipse at 100% 0%,#000 0 20%,#000e 34%,transparent 57%),
+  radial-gradient(ellipse at 0% 100%,#000 0 20%,#000e 34%,transparent 57%),
+  radial-gradient(ellipse at 100% 100%,#000 0 20%,#000e 34%,transparent 57%);
+}
+.arg-corner-void[data-level="3"]{
+ background:
+  radial-gradient(ellipse at 0% 0%,#000 0 36%,#000f 50%,#000a 66%,transparent 83%),
+  radial-gradient(ellipse at 100% 0%,#000 0 36%,#000f 50%,#000a 66%,transparent 83%),
+  radial-gradient(ellipse at 0% 100%,#000 0 36%,#000f 50%,#000a 66%,transparent 83%),
+  radial-gradient(ellipse at 100% 100%,#000 0 36%,#000f 50%,#000a 66%,transparent 83%);
+}

@@ -63,8 +63,10 @@ function connect(){
   $('secret-status').textContent=effects.secret?'Área secreta liberada · #02 e V4':'Área secreta desativada';
   const lvl=effects.crack?.level||0;
   $('damage-status').textContent=(lvl?'Nível '+lvl+' de rachadura':'Tela intacta')+
-   (effects.cornersVoid?' · Vazio nos quatro cantos':'')+
+   (effects.cornersVoid?' · Vazio da quebra completa ativo':'')+
    (effects.bug?.enabled?' · Bug a cada '+((effects.bug.intervalMs||10000)/1000)+'s':'');
+  const v=effects.void;
+  $('void-status').textContent=v?(v.mode==='corners'?'Vazio ativo: nível '+v.level+' nos quatro cantos.':'Vazio personalizado ativo.'):'Vazio desativado.';
  });
  stream.addEventListener('canvas',ev=>{latestCanvas=JSON.parse(ev.data);postFrame('arg-canvas',latestCanvas);});
  stream.addEventListener('activity',ev=>{const d=JSON.parse(ev.data);log(d.event,d.at);});
@@ -133,7 +135,7 @@ function selectMode(next){
 }
 $('mode-place').onclick=()=>selectMode('place');
 $('mode-control').onclick=()=>selectMode('control');
-$('mode-mark').onclick=()=>selectMode('mark');
+$('mode-mark').onclick=()=>{selectMode('mark');$('void-level').value='custom';refreshVoidMode();};
 $('void-mark-clear').onclick=()=>{voidPoints=[];drawVoidOutline();};
 let queue=Promise.resolve();
 function doPointer(ev,phase){
@@ -179,9 +181,28 @@ $('scroll-down').onclick=()=>send({type:'scroll',delta:470,x:.5,y:.65});
 $('type-send').onclick=()=>{const t=$('type-text').value;if(t)send({type:'type',text:t},'Texto enviado');else toast('Digite um texto',true);};
 $('message-show').onclick=()=>{const t=$('message').value.trim();if(t)send({type:'message',text:t,x,y,size:Number($('message-size').value)},'Texto exibido');else toast('Escreva a mensagem',true);};
 $('message-clear').onclick=()=>send({type:'message',clear:true},'Texto removido');
+function refreshVoidMode(){
+ const value=$('void-level').value;
+ $('void-custom-options').hidden=value!=='custom';
+ const hints={
+  '1':'Nível 1: igual ao Vazio dos quatro cantos da quebra completa, sem trincar a tela.',
+  '2':'Nível 2: manchas maiores surgem e pulsam nos quatro cantos.',
+  '3':'Nível 3: escuridão bem grande avança dos quatro cantos para o centro.',
+  'custom':'Personalizado: use Marcar Vazio para desenhar ou Escolher posição para colocar uma mancha.'
+ };
+ $('void-hint').textContent=hints[value]||hints['1'];
+}
+$('void-level').addEventListener('change',refreshVoidMode);
+refreshVoidMode();
 $('void-show').onclick=()=>{
+ const choice=$('void-level').value;
+ if(choice!=='custom'){
+  const level=Number(choice);
+  send({type:'void',mode:'corners',level},'Vazio nível '+level+' ativado nos quatro cantos');
+  return;
+ }
  const points=voidPoints.length>=3?voidPoints.map(p=>p.map(v=>Math.round(v*1000)/10)):null;
- send({type:'void',x,y,size:Number($('void-size').value),...(points?{points}:{})},points?'Vazio pulsando na área marcada':'Vazio pulsando no ponto');
+ send({type:'void',mode:'custom',x,y,size:Number($('void-size').value),...(points?{points}:{})},points?'Vazio pulsando na área marcada':'Vazio pulsando no ponto');
 };
 $('void-clear').onclick=()=>send({type:'void',clear:true},'Vazio removido');
 $('notification-send').onclick=()=>{const message=$('notification-body').value.trim();if(message)send({type:'notification',title:$('notification-title').value.trim()||'Sistema',message},'Notificação enviada');else toast('Escreva a notificação',true);};
