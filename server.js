@@ -10,7 +10,7 @@ const MASTER_PASSWORD = process.env.MASTER_PASSWORD || (process.env.RENDER ? '' 
 const MASTER_ROUTE = process.env.MASTER_ROUTE || '/mestre';
 if (!MASTER_PASSWORD) throw new Error('MASTER_PASSWORD é obrigatória para publicação');
 const ROOT = path.resolve(__dirname, 'public');
-const mime = {'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'};
+const mime = {'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml'};
 const masters = new Map();
 const playerSessions = new Map();
 const masterStreams = new Set();
@@ -71,6 +71,8 @@ const server=http.createServer(async(req,res)=>{
  try{
   if(req.method==='GET'&&['/','/phone'].includes(pathname))return serveFile(res,'index.html');
   if(req.method==='GET'&&pathname===MASTER_ROUTE)return serveFile(res,'mestre.html');
+  if(req.method==='GET'&&pathname==='/phase2.js')return serveFile(res,'phase2.js');
+  if(req.method==='GET'&&pathname==='/phase2.css')return serveFile(res,'phase2.css');
   if(req.method==='GET'&&pathname==='/bridge.js')return serveFile(res,'bridge.js');
   if(req.method==='GET'&&pathname==='/mestre.js')return serveFile(res,'mestre.js');
   if(req.method==='GET'&&pathname==='/health')return json(res,200,{ok:true});
