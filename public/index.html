@@ -3815,6 +3815,14 @@
         startSheetGesture(event, 'open');
       });
 
+      // Acessibilidade: um toque também revela a tela de padrão.
+      // O gesto original de deslizar para cima continua disponível.
+      lockscreen.addEventListener('click', (event) => {
+        if (sheetOpen || unlocked || device.classList.contains('off')) return;
+        if (event.target.closest('button, a, input')) return;
+        openSheet();
+      });
+
       unlockSheet.addEventListener('pointerdown', (event) => {
         if (!sheetOpen || unlocked || drawingPattern || patternCooldown || dialerOpen) return;
         if (event.target.closest('.node, .emergency-trigger')) return;
