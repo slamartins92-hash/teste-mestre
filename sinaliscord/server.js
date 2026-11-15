@@ -313,7 +313,7 @@ async function api(req,res,p,params){
     for(const m of db.messages){if(m.dmUserId && [m.senderId,m.dmUserId].includes(u.id)){
       const other=m.senderId===u.id?m.dmUserId:m.senderId;if(!dms.includes(other))dms.push(other);
     }}
-    return tokenize(res,{me:publicUser(u,server),servers:myServers.map(({members,...x})=>({...x,role:members[u.id],memberCount:Object.keys(members).length})),server:{...server,members:undefined,role:server.members[u.id],memberCount:members.length},channels,members,online:online(),voice:Array.from(voices.entries()).map(([id,v])=>({id,...v})),dms:dms.map(id=>{const person=db.users.find(x=>x.id===id);return person?publicUser(person):null}).filter(Boolean)});
+    return tokenize(res,{permissions:{diceBlocked:!!server.diceBlockedUsers?.[u.id],serverMuted:!!server.voiceMutedUsers?.[u.id],maxDice:server.members[u.id]==='mestre'?200:10,diceBlockedUsers:server.members[u.id]==='mestre'?server.diceBlockedUsers||{}:{},voiceMutedUsers:server.members[u.id]==='mestre'?server.voiceMutedUsers||{}:{}},me:publicUser(u,server),servers:myServers.map(({members,...x})=>({...x,role:members[u.id],memberCount:Object.keys(members).length})),server:{...server,members:undefined,role:server.members[u.id],memberCount:members.length},channels,members,online:online(),voice:Array.from(voices.entries()).map(([id,v])=>({id,...v})),dms:dms.map(id=>{const person=db.users.find(x=>x.id===id);return person?publicUser(person):null}).filter(Boolean)});
   }
   if(p==='/api/all-users'&&method==='GET')return tokenize(res,{users:db.users.map(x=>publicUser(x))});
 
@@ -323,10 +323,12 @@ async function api(req,res,p,params){
     const b=await body(req);
     const allowed=[4,6,8,10,12,20,100];
     const sides=Number(b.sides), count=Number(b.count);
-    if(!Number.isInteger(sides)||!allowed.includes(sides)||!Number.isInteger(count)||count<1||count>10)
-      return error(res,'Escolha entre 1 e 10 dados de d4, d6, d8, d10, d12, d20 ou d100.');
     const server=db.servers.find(s=>s.id===b.serverId&&s.members?.[u.id]);
     if(!server)return error(res,'Servidor indisponível.',403);
+    if(server.diceBlockedUsers?.[u.id])return error(res,'O Mestre bloqueou suas rolagens de dados.',403);
+    const limit=server.members[u.id]==='mestre'?200:10;
+    if(!Number.isInteger(sides)||!allowed.includes(sides)||!Number.isInteger(count)||count<1||count>limit)
+      return error(res,'Escolha entre 1 e '+limit+' dados de d4, d6, d8, d10, d12, d20 ou d100.');
     const dados=db.channels.find(c=>c.serverId===server.id&&c.name.toLowerCase()==='dados'&&c.type==='text');
     if(!dados)return error(res,'Canal #dados não encontrado.',404);
     const values=Array.from({length:count},()=>crypto.randomInt(1,sides+1));
@@ -352,8 +354,10 @@ async function api(req,res,p,params){
     if(content.length>4000)return error(res,'A mensagem excede 4.000 caracteres.');
     if(!content&&!b.attachment)return error(res,'Digite uma mensagem ou envie um arquivo.');
     const channel=b.channelId?db.channels.find(c=>c.id===b.channelId):null;
-    if(channel){if(channel.type!=='text'||!readable(channel,u))return error(res,'Canal indisponível.',403);
-      const server=db.servers.find(x=>x.id===channel.serverId);if(channel.readOnly&&!staff(server.members[u.id]))return error(res,'Só a equipe pode escrever neste canal.',403);
+    if(channel){if(!['text','voice'].includes(channel.type)||!readable(channel,u))return error(res,'Canal indisponível.',403);
+      const server=db.servers.find(x=>x.id===channel.serverId);
+      if(channel.type==='voice'&&voices.get(u.id)?.room!==channel.id)return error(res,'Entre na Call para enviar mensagens.',403);
+      if(channel.readOnly&&!staff(server.members[u.id]))return error(res,'Só a equipe pode escrever neste canal.',403);
     } else if(!b.dmUserId||!db.users.some(x=>x.id===b.dmUserId&&x.id!==u.id))return error(res,'Conversa privada inválida.');
     const attachment=b.attachment&&typeof b.attachment.url==='string'&&/^\/uploads\/[\w.-]+$/.test(b.attachment.url)?{url:b.attachment.url,name:String(b.attachment.name||'arquivo').slice(0,100),type:String(b.attachment.type||'')}:null;
     const m={id:uid(),channelId:channel?.id||null,dmUserId:channel?null:b.dmUserId,senderId:u.id,content,attachment,replyTo:b.replyTo||null,createdAt:now(),updatedAt:null,reactions:{},pinned:false};
@@ -457,18 +461,20 @@ async function api(req,res,p,params){
     const b=await body(req);const ch=db.channels.find(c=>c.id===b.channelId);
     if(!ch||ch.type!=='voice'||!readable(ch,u))return error(res,'Canal de voz inválido.',403);
     const people=voicePeople(ch.id).filter(x=>x.id!==u.id);
-    voices.set(u.id,{room:ch.id,muted:false,deaf:false,video:false,sharing:false});voiceState();
-    return tokenize(res,{people});
+    const server=db.servers.find(x=>x.id===ch.serverId);
+    const serverMuted=!!server?.voiceMutedUsers?.[u.id];
+    voices.set(u.id,{room:ch.id,muted:serverMuted,serverMuted,deaf:false,video:false,sharing:false});voiceState();
+    return tokenize(res,{people,serverMuted});
   }
   if(p==='/api/voice/leave'&&method==='POST'){leaveVoice(u.id);return tokenize(res,{ok:true});}
   if(p==='/api/voice/state'&&method==='POST'){
     const b=await body(req);const v=voices.get(u.id);if(!v)return error(res,'Não está em chamada.',400);
-    for(const k of ['muted','deaf','video','sharing'])if(b[k]!==undefined)v[k]=!!b[k];voiceState();return tokenize(res,{ok:true});
+    for(const k of ['muted','deaf','video','sharing'])if(b[k]!==undefined)v[k]=!!b[k];if(v.serverMuted)v.muted=true;voiceState();return tokenize(res,{ok:true,muted:v.muted,serverMuted:!!v.serverMuted});
   }
   if(p==='/api/voice/signal'&&method==='POST'){
     const b=await body(req);const mine=voices.get(u.id),theirs=voices.get(b.to);
     if(!mine||!theirs||mine.room!==theirs.room)return error(res,'Participante não está na mesma chamada.',403);
-    if(!['offer','answer','candidate'].includes(b.kind))return error(res,'Sinal inválido.');
+    if(!['offer','answer','candidate','media-info'].includes(b.kind))return error(res,'Sinal inválido.');
     sendTo(b.to,'signal',{from:u.id,kind:b.kind,data:b.data});return tokenize(res,{ok:true});
   }
   return error(res,'Rota não encontrada.',404);
