@@ -195,6 +195,30 @@
 .avatar-editor-zoom input{flex:1;accent-color:#f05077;min-width:0}
 .avatar-editor-zoom b{font-size:12px;min-width:42px;font-variant-numeric:tabular-nums}
 
+
+/* V15: chat na Call e controles persistentes */
+.voice-chat-wrapper{width:min(960px,100%);border:1px solid #7c334a;border-radius:19px;background:linear-gradient(145deg,#240e18,#160b10);padding:15px 18px;text-align:left;margin:16px auto 4px;box-shadow:0 12px 38px #0005}
+.voice-chat-head{display:flex;justify-content:space-between;align-items:center;color:#ffe0e9;font-size:16px;font-weight:750;border-bottom:1px solid #542733;padding-bottom:11px;margin-bottom:12px}
+.voice-chat-head small{color:#ba94a1;font-weight:400;font-size:12px}
+.voice-chat-messages{max-height:350px;overflow-y:auto;overscroll-behavior:contain}
+.voice-chat-messages .message{padding:9px 5px;border-radius:10px}
+.voice-chat-messages .message:hover{background:#3b1826}
+.voice-chat-messages .avatar{flex-shrink:0}
+.voice-chat-empty{color:#bc93a0;font-size:13px;text-align:center;padding:18px}
+.master-header-btn{border:1px solid #a34767;background:#451c30;color:#ffd8e3;padding:7px 12px;display:flex;align-items:center;gap:6px;border-radius:11px;font-weight:700}
+.master-header-btn svg{width:16px;height:16px}
+.master-header-btn:hover{background:#5f2540}
+.master-desc{font-size:13px;color:#c9a5b1;line-height:1.5}
+.master-list{display:grid;gap:12px;max-height:55vh;overflow:auto;padding:6px 0}
+.master-person{background:#2b1420;border:1px solid #613348;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.master-person-top{display:flex;align-items:center;gap:10px;color:#f4ced9}
+.master-person-actions{display:flex;gap:6px;flex-wrap:wrap}
+.master-person-actions button{border-radius:9px;padding:8px 10px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;border:1px solid #793b52}
+.master-person-actions button svg{width:16px;height:16px}
+.master-person-actions .master-danger{background:#61202d;color:#ffd7df}
+.master-person-actions .master-neutral{background:#30222b;color:#ead1da}
+.voice-screen-frame video{background:#120911;object-fit:contain;image-rendering:auto}
+@media(max-width:680px){.voice-chat-wrapper{padding:11px}.master-header-btn{font-size:0;padding:8px}.master-header-btn svg{width:18px;height:18px}.master-person{align-items:flex-start}}
 </style>
 <style id="sinalis-v4-fix">
 #authSubmit{position:relative;z-index:40;pointer-events:auto!important;min-height:48px;cursor:pointer!important}
@@ -322,7 +346,7 @@
  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
  function stableNoise(s){let h=2166136261;for(let c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0)/4294967295}
  function setupDice(roll){
-  return roll.values.map((value,i)=>{
+  return roll.values.slice(0,18).map((value,i)=>{
    const sides=Number(roll.sides),m=meshes.get(sides)||meshes.get(20),faceIndex=(Math.max(1,value)-1)%m.faces.length,face=m.faces[faceIndex],n=norm(cross(sub(m.verts[face[1]],m.verts[face[0]]),sub(m.verts[face[2]],m.verts[face[0]])));
    const rnd=k=>stableNoise(String(roll.id||roll.createdAt||roll.total)+'-'+i+'-'+k);
    return {value,sides,m,faceIndex,aim:aimFace(n),rnd,delay:i*.042,axis:norm([.45+rnd('a'),.7+rnd('b'),.4+rnd('c')]),spin:(4+rnd('s')*2)*pi,fromLeft:i%2===0};
@@ -492,13 +516,14 @@ const iconPaths={
 };
 const I=name=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name]||iconPaths.help}</svg>`;
 function injectIcons(root=document){$$('[data-ico]',root).forEach(el=>{el.innerHTML=I(el.dataset.ico);el.removeAttribute('data-ico');});if(window.SINALIS_LOGO_URL)$$('img[src="assets/logo.png"]',root).forEach(img=>{img.src=window.SINALIS_LOGO_URL;});}
-const state={token:localStorage.getItem('sinalis-token')||'',me:null,server:null,servers:[],channels:[],members:[],dms:[],online:[],voice:[],messages:[],channelId:null,dmUserId:null,view:'chat',attachment:null,replyId:null,authMode:'login',search:'',source:null,typing:{},typingLast:0,read:{},call:{room:null,stream:null,peers:new Map(),remote:new Map(),muted:false,deaf:false,camera:null,screen:null,minimized:false}};
+const state={token:localStorage.getItem('sinalis-token')||'',me:null,server:null,servers:[],channels:[],members:[],dms:[],online:[],voice:[],messages:[],channelId:null,dmUserId:null,view:'chat',attachment:null,replyId:null,authMode:'login',search:'',source:null,typing:{},typingLast:0,read:{},permissions:{diceBlocked:false,serverMuted:false,maxDice:10,diceBlockedUsers:{},voiceMutedUsers:{}},call:{room:null,stream:null,peers:new Map(),remote:new Map(),mediaMeta:new Map(),muted:false,deaf:false,camera:null,screen:null,minimized:false}};
 const key=(suffix)=>'sinalis-'+suffix;
 const audioPrefs={input:localStorage.getItem('sinalis-input-device')||'',output:localStorage.getItem('sinalis-output-device')||''};
 function audioInputConstraints(){return {echoCancellation:true,noiseSuppression:true,autoGainControl:true,...(audioPrefs.input?{deviceId:{exact:audioPrefs.input}}:{})}}
 function deviceArrow(kind){return '<button class="call-control-btn control-caret" data-action="audio-device-menu" data-kind="'+kind+'" title="'+(kind==='audioinput'?'Escolher microfone':'Escolher fone ou saída de áudio')+'" aria-label="Escolher '+(kind==='audioinput'?'microfone':'saída de áudio')+'">'+I('arrow')+'</button>'}
 
 const isStaff=()=>state.server?.role==='mestre';
+const diceLimit=()=>isStaff()?200:10;
 const canManage=()=>state.server?.role==='mestre';
 const currentChannel=()=>state.channels.find(c=>c.id===state.channelId);
 const person=id=>state.members.find(m=>m.id===id)||state.dms.find(m=>m.id===id)||allUsers.find(m=>m.id===id)||{id,username:'Usuário',displayName:'Usuário',role:'player',status:'invisible'};
@@ -523,7 +548,7 @@ function saveSelection(){localStorage.setItem(key('server'),state.server?.id||''
 async function bootstrap(preserve=false){
  const preferred=state.server?.id||localStorage.getItem(key('server'))||'';
  const b=await api('/api/bootstrap'+(preferred?'?server='+encodeURIComponent(preferred):''));
- state.me=b.me;state.server=b.server;state.servers=b.servers;state.channels=b.channels;state.members=b.members;state.dms=b.dms;state.online=b.online;state.voice=b.voice;
+ state.me=b.me;state.server=b.server;state.servers=b.servers;state.channels=b.channels;state.members=b.members;state.dms=b.dms;state.online=b.online;state.voice=b.voice;state.permissions=b.permissions||{diceBlocked:false,serverMuted:false,maxDice:10,diceBlockedUsers:{},voiceMutedUsers:{}};
  allUsers=Array.from(new Map([...allUsers,...b.members,...b.dms].map(x=>[x.id,x])).values());
  if(!preserve||!state.channelId||!state.channels.some(c=>c.id===state.channelId)){
   state.channelId=state.channels.find(c=>c.name==='geral')?.id||state.channels.find(c=>c.type==='text')?.id||null;
@@ -568,7 +593,7 @@ function renderHeader(){
  if(state.view==='dms'){header.innerHTML=`${I('users')}<h2>Mensagens privadas</h2><span class="topic">Sua lista de conversas</span><div class="chat-header-actions"><button class="icon-btn" data-action="new-dm" title="Nova mensagem">${I('plus')}</button></div>`;return;}
  if(state.view==='explore'){header.innerHTML=`${I('compass')}<h2>Explorar</h2><span class="topic">Seus servidores e convites</span>`;return;}
  if(state.dmUserId){header.innerHTML=`${I('user')}<h2>${E(person(state.dmUserId).displayName)}</h2><span class="topic">Conversa privada</span><div class="chat-header-actions"><button class="icon-btn" data-action="search" title="Pesquisar mensagens">${I('search')}</button><button class="icon-btn" data-action="open-member" data-id="${E(state.dmUserId)}" title="Ver perfil">${I('users')}</button></div>`;return;}
- const ch=currentChannel();header.innerHTML=`<span class="hash">${ch?.type==='voice'?I('volume'):'#'}</span><h2>${E(ch?.name||'geral')}</h2><span class="topic">${E(ch?.description||'Compartilhe suas ideias.')}</span><div class="chat-header-actions"><button class="dice-header-btn" data-action="dice-open" title="Jogar dados de RPG" aria-label="Jogar dado D20">${I('dice')}<span>D20</span></button><button class="icon-btn hide-small" data-action="pinned" title="Mensagens fixadas">${I('pin')}</button><button class="icon-btn" data-action="search" title="Pesquisar mensagens">${I('search')}</button><button class="icon-btn" data-action="toggle-members" title="Membros">${I('users')}</button></div>`;
+ const ch=currentChannel();header.innerHTML=`<span class="hash">${ch?.type==='voice'?I('volume'):'#'}</span><h2>${E(ch?.name||'geral')}</h2><span class="topic">${E(ch?.description||'Compartilhe suas ideias.')}</span><div class="chat-header-actions">${isStaff()?`<button class="master-header-btn" data-action="master-panel" title="Controlar voz e dados">${I('shield')} Mestre</button>`:''}<button class="dice-header-btn" data-action="dice-open" title="Jogar dados de RPG" aria-label="Jogar dado D20">${I('dice')}<span>D20</span></button><button class="icon-btn hide-small" data-action="pinned" title="Mensagens fixadas">${I('pin')}</button><button class="icon-btn" data-action="search" title="Pesquisar mensagens">${I('search')}</button><button class="icon-btn" data-action="toggle-members" title="Membros">${I('users')}</button></div>`;
 }
 function renderMembers(){
  const s=$('#membersSidebar');
@@ -586,13 +611,40 @@ function inlineCallControls(){
 }
 
 function syncVoiceStageMedia(){
- const local=$('[data-stage-local-screen]');
- if(local && state.call.screen){local.srcObject=state.call.screen;local.play().catch(()=>{})}
- const preview=$('[data-stage-local-camera]');
- if(preview && state.call.camera){preview.srcObject=state.call.camera;preview.play().catch(()=>{})}
- const remoteEls=$$('[data-stage-remote-screen]');
- remoteEls.forEach(v=>{const id=v.dataset.stageRemoteScreen;const stream=state.call.remote.get(id);if(stream){v.srcObject=stream;v.play().catch(()=>{})}});
- $$('[data-stage-remote-camera]').forEach(v=>{const stream=state.call.remote.get(v.dataset.stageRemoteCamera);if(stream){v.srcObject=stream;v.play().catch(()=>{})}});
+ const c=state.call;
+ function bind(v,stream){
+  if(!v||!stream)return;
+  const t=stream.getVideoTracks()[0];
+  if(!t||t.readyState==='ended')return;
+  if(v.srcObject?.getVideoTracks?.()[0]!==t)v.srcObject=stream;
+  if(!v.dataset.retryVideo){
+    v.dataset.retryVideo='1';v.onloadedmetadata=()=>v.play().catch(()=>{});
+    v.onerror=()=>{v.dataset.retryVideo='';};
+  }
+  if(v.paused||v.readyState<2)v.play().catch(()=>{});
+ }
+ bind($('[data-stage-local-screen]'),c.screen);
+ bind($('[data-stage-local-camera]'),c.camera);
+ for(const v of $$('[data-stage-remote-screen], [data-stage-remote-camera]')){
+  const isScreen=v.hasAttribute('data-stage-remote-screen');
+  const id=isScreen?v.dataset.stageRemoteScreen:v.dataset.stageRemoteCamera;
+  const all=c.remote.get(id)?.getVideoTracks?.().filter(t=>t.readyState==='live')||[];
+  const meta=c.mediaMeta?.get(id)||{};
+  const preferred=all.find(t=>t.id===(isScreen?meta.screen:meta.camera));
+  const other=all.find(t=>t.id===(isScreen?meta.camera:meta.screen));
+  const track=preferred||(isScreen?all.filter(t=>t!==other).slice(-1)[0]:all.find(t=>t!==other))||all[0];
+  if(!track)continue;
+  // Store a stable single-track MediaStream: never attach audio or the other video feed to this element.
+  let holder=v._sinalisVideoStream;
+  if(!holder||holder.getVideoTracks()[0]!==track){holder=new MediaStream([track]);v._sinalisVideoStream=holder;}
+  bind(v,holder);
+ }
+}
+setInterval(()=>{if(state.call.room&&currentChannel()?.type==='voice'&&state.view==='chat')syncVoiceStageMedia()},2800);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state.call.room)syncVoiceStageMedia()});
+function sendMediaInfo(){const c=state.call;if(!c.room)return;
+ const data={screen:c.screen?.getVideoTracks()[0]?.id||null,camera:c.camera?.getVideoTracks()[0]?.id||null};
+ for(const id of c.peers.keys())signal(id,'media-info',data).catch(()=>{});
 }
 
 function renderMain(){
@@ -601,7 +653,8 @@ function renderMain(){
   compose.classList.add('hidden');chat.innerHTML=renderPage();return;
  }
  const ch=currentChannel();if(!state.dmUserId&&ch?.type==='voice'){
-  compose.classList.add('hidden');
+  const inVoice=state.call.room===ch.id;compose.classList.toggle('hidden',!inVoice);
+  $('#messageInput').placeholder='Mensagem no chat da Call';$('#messageInput').disabled=!inVoice;
   const participants=voicePeople(ch.id);
   const connected=state.call.room===ch.id;
   const sharer=connected&&state.call.screen
@@ -621,7 +674,7 @@ function renderMain(){
   }
   const stageCamera=cameraTiles.length?`<div class="voice-cameras-grid">${cameraTiles.join('')}</div>`:'';
   const stageShare=sharer?`<section class="voice-screen-stage" aria-label="Transmissão de ${E(sharer.user.displayName)}"><div class="voice-screen-live"><span class="voice-screen-live-dot"></span><strong>${E(sharer.user.displayName)}</strong> está compartilhando a tela</div><div class="voice-screen-frame">${sharer.type==='local'?`<video autoplay playsinline muted data-stage-local-screen></video>`:`<video autoplay playsinline muted data-stage-remote-screen="${E(sharer.id)}"></video>`}</div></section>`:'';
-  chat.innerHTML=`<div class="voice-stage"><div class="voice-stage-glow"></div><div class="voice-stage-heading"><span class="voice-stage-symbol">${I('volume')}</span><p>CANAL DE VOZ</p><h1>✦ Call</h1><span>${sharer?'A transmissão aparece logo abaixo das fotos.':'Entre para conversar com o pessoal do sinais escarlate.'}</span></div><div class="voice-people-grid">${tiles||`<div class="voice-nobody">${I('users')}<span>Ainda não tem ninguém na Call.<br>Seja a primeira pessoa a entrar! :p</span></div>`}</div>${stageCamera}${stageShare}<div class="voice-stage-bottom">${!connected?`<button class="primary-btn voice-join-btn" data-action="join-voice" data-id="${E(ch.id)}">${I('volume')} Entrar na Call</button>`:inlineCallControls()}<p class="call-tip">${window.SINALIS_OFFLINE?'Demonstração local: a tela compartilhada aparece abaixo da foto; o áudio entre pessoas continua só na versão com servidor.':'Para falar com outras pessoas, permita o microfone. Ao compartilhar a tela, ela aparecerá abaixo das fotos.'}</p></div></div>`;
+  chat.innerHTML=`<div class="voice-stage"><div class="voice-stage-glow"></div><div class="voice-stage-heading"><span class="voice-stage-symbol">${I('volume')}</span><p>CANAL DE VOZ</p><h1>✦ Call</h1><span>${sharer?'A transmissão aparece logo abaixo das fotos.':'Entre para conversar com o pessoal do sinais escarlate.'}</span></div><div class="voice-people-grid">${tiles||`<div class="voice-nobody">${I('users')}<span>Ainda não tem ninguém na Call.<br>Seja a primeira pessoa a entrar! :p</span></div>`}</div>${stageCamera}${stageShare}<div class="voice-stage-bottom">${!connected?`<button class="primary-btn voice-join-btn" data-action="join-voice" data-id="${E(ch.id)}">${I('volume')} Entrar na Call</button>`:inlineCallControls()}<p class="call-tip">${window.SINALIS_OFFLINE?'Demonstração local: a tela compartilhada aparece abaixo da foto; o áudio entre pessoas continua só na versão com servidor.':'Para falar com outras pessoas, permita o microfone. Ao compartilhar a tela, ela aparecerá abaixo das fotos.'}</p></div><section class="voice-chat-wrapper" aria-label="Chat da Call"><div class="voice-chat-head"><span>💬 Chat da Call</span><small>${state.messages.length} mensagens</small></div><div class="voice-chat-messages" id="voiceChatMessages">${state.messages.length?state.messages.map(renderMessage).join(''):'<p class="voice-chat-empty">Nenhuma mensagem ainda. Entre na Call e mande a primeira! :p</p>'}</div></section></div>`;
   injectIcons(chat);syncVoiceStageMedia();
   return;
  }
@@ -649,7 +702,7 @@ function renderMessage(m){
  const reply=m.replyTo?state.messages.find(x=>x.id===m.replyTo):null;
  const reactions=Object.entries(m.reactions||{}).filter(([,ids])=>ids.length).map(([emoji,ids])=>`<button class="reaction ${ids.includes(state.me.id)?'me':''}" data-action="react" data-id="${E(m.id)}" data-emoji="${E(emoji)}">${E(emoji)} ${ids.length}</button>`).join('');
  const attach=m.attachment?(m.attachment.type?.startsWith('image/')?`<a href="${E(m.attachment.url)}" target="_blank" rel="noopener"><img class="attached-image" src="${E(m.attachment.url)}" alt="${E(m.attachment.name)}" loading="lazy"></a>`:`<a class="file-card" href="${E(m.attachment.url)}" target="_blank" rel="noopener" download="${E(m.attachment.name)}">${I('file')} ${E(m.attachment.name)}</a>`):'';
- return `<article class="message" id="message-${E(m.id)}">${avatar(author,40)}<div class="msg-main">${reply?`<div class="reply-line">↳ ${E(person(reply.senderId).displayName)}: ${E(reply.content.slice(0,65))}</div>`:''}<div class="msg-meta"><button class="msg-author" data-action="open-member" data-id="${E(author.id)}">${E(author.displayName)}</button><span class="msg-time">${dateTime(m.createdAt)}</span>${m.updatedAt?'<span class="msg-edit">(editada)</span>':''}${m.pinned?`<span class="pinned-mark">${I('pin')} Fixada</span>`:''}</div><div class="message-body">${markdown(m.content)}</div>${m.roll?`<div class="dice-message-card"><span class="dice-msg-icon">${I('dice')}</span><span class="dice-msg-label">${E(m.roll.count)}d${E(m.roll.sides)}</span><span class="dice-msg-values">${E(m.roll.values?.join(' + ')||'')}</span><strong class="dice-msg-total">${E(m.roll.total)}</strong></div>`:''}${attach}${reactions?`<div class="reaction-line">${reactions}</div>`:''}</div><div class="msg-toolbar"><button class="icon-btn" data-action="react-picker" data-id="${E(m.id)}" title="Reagir">${I('smile')}</button><button class="icon-btn" data-action="reply" data-id="${E(m.id)}" title="Responder">${I('reply')}</button>${mine?`<button class="icon-btn" data-action="edit-message" data-id="${E(m.id)}" title="Editar">${I('edit')}</button>`:''}${(mine||(isStaff()&&!state.dmUserId))?`<button class="icon-btn" data-action="delete-message" data-id="${E(m.id)}" title="Apagar">${I('trash')}</button>`:''}${isStaff()&&!state.dmUserId?`<button class="icon-btn" data-action="pin-message" data-id="${E(m.id)}" title="Fixar">${I('pin')}</button>`:''}</div></article>`;
+ return `<article class="message" id="message-${E(m.id)}">${avatar(author,40)}<div class="msg-main">${reply?`<div class="reply-line">↳ ${E(person(reply.senderId).displayName)}: ${E(reply.content.slice(0,65))}</div>`:''}<div class="msg-meta"><button class="msg-author" data-action="open-member" data-id="${E(author.id)}">${E(author.displayName)}</button><span class="msg-time">${dateTime(m.createdAt)}</span>${m.updatedAt?'<span class="msg-edit">(editada)</span>':''}${m.pinned?`<span class="pinned-mark">${I('pin')} Fixada</span>`:''}</div><div class="message-body">${markdown(m.content)}</div>${m.roll?`<div class="dice-message-card"><span class="dice-msg-icon">${I('dice')}</span><span class="dice-msg-label">${E(m.roll.count)}d${E(m.roll.sides)}</span><span class="dice-msg-values">${E(m.roll.values?.length>26?m.roll.values.slice(0,26).join(' + ')+' … + '+(m.roll.values.length-26)+' outros':m.roll.values?.join(' + ')||'')}</span><strong class="dice-msg-total">${E(m.roll.total)}</strong></div>`:''}${attach}${reactions?`<div class="reaction-line">${reactions}</div>`:''}</div><div class="msg-toolbar"><button class="icon-btn" data-action="react-picker" data-id="${E(m.id)}" title="Reagir">${I('smile')}</button><button class="icon-btn" data-action="reply" data-id="${E(m.id)}" title="Responder">${I('reply')}</button>${mine?`<button class="icon-btn" data-action="edit-message" data-id="${E(m.id)}" title="Editar">${I('edit')}</button>`:''}${(mine||(isStaff()&&!state.dmUserId))?`<button class="icon-btn" data-action="delete-message" data-id="${E(m.id)}" title="Apagar">${I('trash')}</button>`:''}${isStaff()&&!state.dmUserId?`<button class="icon-btn" data-action="pin-message" data-id="${E(m.id)}" title="Fixar">${I('pin')}</button>`:''}</div></article>`;
 }
 function renderPage(){
  if(state.view==='home')return `<div class="conversation-list"><div class="section-page-title">✦ Bem-vindo(a) ao Sinalis</div><p class="muted">Escolha um servidor ou continue uma conversa.</p><div class="subheading">SEUS SERVIDORES</div>${state.servers.map(s=>`<button class="conversation-card" data-action="select-server" data-id="${E(s.id)}">${avatar({displayName:s.name},43)}<span class="conversation-text"><b>${E(s.name)}</b><small>${s.memberCount} integrante(s)</small></span>${I('arrow')}</button>`).join('')}<div class="subheading">CONVERSAS RECENTES</div>${renderDms()||'<p class="muted">Ainda não há mensagens privadas.</p>'}<button class="secondary-btn" data-action="new-dm" style="margin-top:8px">${I('plus')} Nova conversa</button></div>`;
@@ -659,7 +712,7 @@ function renderPage(){
 function renderDms(){return state.dms.map(u=>`<button class="conversation-card" data-action="open-dm" data-id="${E(u.id)}">${avatar(u,43)}<span class="conversation-text"><b>${E(u.displayName)}</b><small>${E(u.bio||'Mensagem privada')}</small></span><span class="status-dot ${state.online.includes(u.id)?'online':''}"></span></button>`).join('');}
 async function loadMessages(){
  if(state.view!=='chat')return;
- const ch=currentChannel();if(!state.dmUserId&&(!ch||ch.type==='voice')){state.messages=[];renderMain();return;}
+ const ch=currentChannel();if(!state.dmUserId&&!ch){state.messages=[];renderMain();return;}
  const url=state.dmUserId?'/api/messages?dm='+encodeURIComponent(state.dmUserId):'/api/messages?channel='+encodeURIComponent(state.channelId);
  const d=await api(url);state.messages=d.messages;renderMain();scrollDown(true);renderHeader();injectIcons($('#chatHeader'));
 }
@@ -686,6 +739,15 @@ async function handleFile(file,forAvatar=false){
   else{state.attachment=response.attachment;renderAttachment();toast('Arquivo pronto para enviar!','success');}
  }catch(err){toast(err.message,'error')}finally{activeUpload=false;$('#fileInput').value='';$('#avatarInput').value='';}
 }
+function appendVoiceChatMessage(m){
+ const box=$('#voiceChatMessages');
+ if(!box){renderMain();return}
+ if(document.getElementById('message-'+m.id))return;
+ box.querySelector('.voice-chat-empty')?.remove();
+ box.insertAdjacentHTML('beforeend',renderMessage(m));injectIcons(box);
+ const count=$('.voice-chat-head small');if(count)count.textContent=state.messages.length+' mensagens';
+ scrollDown(true);
+}
 async function sendMessage(){
  if(!state.dmUserId&&!state.channelId)return;
  const input=$('#messageInput');const content=input.value.trim();if(!content&&!state.attachment)return;
@@ -693,20 +755,43 @@ async function sendMessage(){
  if(state.dmUserId)payload.dmUserId=state.dmUserId;else payload.channelId=state.channelId;
  input.disabled=true;
  try{const d=await api('/api/messages','POST',payload);
-  if(!state.messages.find(m=>m.id===d.message.id)){state.messages.push(d.message);renderMain();scrollDown(true);}
+  if(!state.messages.find(m=>m.id===d.message.id)){state.messages.push(d.message);if(currentChannel()?.type==='voice'&&!state.dmUserId)appendVoiceChatMessage(d.message);else{renderMain();scrollDown(true);}}
   input.value='';input.style.height='auto';state.attachment=null;state.replyId=null;renderAttachment();
   if(state.dmUserId&&!state.dms.some(u=>u.id===state.dmUserId)){state.dms.push(person(state.dmUserId));}
  }catch(err){toast(err.message,'error')}finally{input.disabled=false;input.focus()}
 }
 
 const diceSides=[4,6,8,10,12,20,100];
-function openDiceModal(){
- modal(`<div class="dice-modal-heading"><span class="dice-modal-sigil">${I('dice')}</span><div><p>RPG • SINAIS ESCARLATE</p><h2>Jogar dados</h2></div></div><p class="dice-modal-subtitle">Escolha o tipo e a quantidade de dados. O resultado aparece em <b>#dados</b> e a animação surge para todos que estão online.</p><form id="diceForm"><label class="field-label" for="diceSides">TIPO DE DADO</label><div class="dice-type-grid">${diceSides.map(s=>`<button type="button" class="dice-type ${s===20?'chosen':''}" data-action="dice-select" data-value="${s}">d${s}</button>`).join('')}</div><input type="hidden" id="diceSides" value="20"><label class="field-label" for="diceCount">QUANTIDADE</label><div class="dice-quantity"><button type="button" data-action="dice-minus" aria-label="Diminuir dados">−</button><input id="diceCount" type="number" min="1" max="10" value="1" required><button type="button" data-action="dice-plus" aria-label="Aumentar dados">+</button></div><div class="dice-modal-footer"><span id="diceHint">1d20</span><button class="primary-btn" type="submit">${I('dice')} Rolar agora</button></div></form>`);
+function showMasterPanel(){
+ if(!isStaff())return toast('Apenas o Mestre pode moderar o servidor.','error');
+ const blocked=state.permissions.diceBlockedUsers||{},muted=state.permissions.voiceMutedUsers||{};
+ const players=state.members.filter(x=>x.role!=='mestre');
+ modal(`<h2>✦ Controles do Mestre</h2><p class="master-desc">Silencie microfones e permita ou bloqueie rolagens. As alterações valem para todos e são salvas no servidor.</p><div class="master-list">${players.map(u=>`<div class="master-person"><div class="master-person-top">${avatar(u,42)}<strong>${E(u.displayName)}</strong></div><div class="master-person-actions"><button data-action="master-toggle" data-id="${E(u.id)}" data-kind="voice" data-enabled="${muted[u.id]?'false':'true'}" class="${muted[u.id]?'master-danger':'master-neutral'}">${I(muted[u.id]?'mic-off':'mic')} ${muted[u.id]?'Permitir falar':'Mutar na Call'}</button><button data-action="master-toggle" data-id="${E(u.id)}" data-kind="dice" data-enabled="${blocked[u.id]?'false':'true'}" class="${blocked[u.id]?'master-danger':'master-neutral'}">${I('dice')} ${blocked[u.id]?'Liberar dados':'Bloquear dados'}</button></div></div>`).join('')}</div><p class="master-desc">Você pode jogar até 200 dados por rolagem. Players: até 10.</p>`);
 }
-function diceUpdateHint(){const sides=Number($('#diceSides')?.value||20),count=Math.max(1,Math.min(10,Number($('#diceCount')?.value||1)));if($('#diceHint'))$('#diceHint').textContent=`${count}d${sides}`;}
+async function toggleMasterPermission(id,kind,enabled){
+ if(!isStaff())return toast('Acesso negado.','error');
+ await api('/api/moderation','POST',{serverId:state.server.id,targetId:id,kind,enabled});
+ const k=kind==='dice'?'diceBlockedUsers':'voiceMutedUsers';state.permissions[k] ||= {};
+ if(enabled)state.permissions[k][id]=true;else delete state.permissions[k][id];
+ showMasterPanel();toast('Permissão alterada.','success');
+}
+function applyServerMute(){
+ const self=state.voice.find(v=>v.id===state.me?.id&&v.room===state.call.room);
+ const locked=!!(self?.serverMuted||state.permissions.serverMuted);
+ if(!state.call.room)return;
+ if(locked){state.call.muted=true;state.call.stream?.getAudioTracks().forEach(t=>t.enabled=false);}
+ state.permissions.serverMuted=!!(self?.serverMuted);
+ renderSelf();
+}
+function openDiceModal(){
+ if(state.permissions.diceBlocked)return toast('O Mestre bloqueou suas rolagens de dados.','error');
+ const max=diceLimit();
+ modal(`<div class="dice-modal-heading"><span class="dice-modal-sigil">${I('dice')}</span><div><p>RPG • SINAIS ESCARLATE</p><h2>Jogar dados</h2></div></div><p class="dice-modal-subtitle">Escolha o tipo e a quantidade de dados. O resultado aparece em <b>#dados</b> e a animação surge para todos que estão online.</p><form id="diceForm"><label class="field-label" for="diceSides">TIPO DE DADO</label><div class="dice-type-grid">${diceSides.map(s=>`<button type="button" class="dice-type ${s===20?'chosen':''}" data-action="dice-select" data-value="${s}">d${s}</button>`).join('')}</div><input type="hidden" id="diceSides" value="20"><label class="field-label" for="diceCount">QUANTIDADE</label><div class="dice-quantity"><button type="button" data-action="dice-minus" aria-label="Diminuir dados">−</button><input id="diceCount" type="number" min="1" max="${max}" value="1" required><button type="button" data-action="dice-plus" aria-label="Aumentar dados">+</button></div><div class="dice-modal-footer"><span id="diceHint">1d20</span><button class="primary-btn" type="submit">${I('dice')} Rolar agora</button></div></form>`);
+}
+function diceUpdateHint(){const sides=Number($('#diceSides')?.value||20),count=Math.max(1,Math.min(diceLimit(),Number($('#diceCount')?.value||1)));if($('#diceHint'))$('#diceHint').textContent=`${count}d${sides}`;}
 async function submitDice(){
  const sides=Number($('#diceSides')?.value),count=Number($('#diceCount')?.value);
- if(!diceSides.includes(sides)||!Number.isInteger(count)||count<1||count>10)throw new Error('Escolha entre 1 e 10 dados.');
+ if(!diceSides.includes(sides)||!Number.isInteger(count)||count<1||count>diceLimit())throw new Error('Escolha entre 1 e '+diceLimit()+' dados.');
  const d=await api('/api/dice/roll','POST',{serverId:state.server.id,sides,count});
  closeModal();
  // SSE/CustomEvent displays result for all clients. On a disconnected SSE fallback, show once locally.
@@ -812,12 +897,22 @@ async function connectEvents(){
   const source=new EventSource('/api/events?ticket='+encodeURIComponent(ticket));state.source=source;
   source.addEventListener('presence',e=>{state.online=JSON.parse(e.data).online;renderMembers();renderSelf();injectIcons($('#selfBar'));if(['home','dms'].includes(state.view))renderMain();});
   source.addEventListener('dice-roll',e=>{try{onDiceRollEvent(JSON.parse(e.data))}catch(err){console.error(err)}});
-  source.addEventListener('voice',e=>{state.voice=JSON.parse(e.data).people;renderSidebar();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();injectIcons($('#channelSidebar'));});
+  source.addEventListener('moderation',e=>{
+   const p=JSON.parse(e.data);if(p.serverId!==state.server?.id)return;
+   const key=p.kind==='dice'?'diceBlockedUsers':'voiceMutedUsers';state.permissions[key] ||= {};
+   if(p.enabled)state.permissions[key][p.targetId]=true;else delete state.permissions[key][p.targetId];
+   if(p.targetId===state.me.id){
+    if(p.kind==='dice'){state.permissions.diceBlocked=p.enabled;toast(p.enabled?'Mestre bloqueou suas rolagens.':'Mestre liberou suas rolagens.');}
+    else if(p.enabled){state.permissions.serverMuted=true;applyServerMute();toast('Seu microfone foi silenciado pelo Mestre.');}
+    else{state.permissions.serverMuted=false;toast('O Mestre liberou seu microfone.');}
+   }
+  });
+  source.addEventListener('voice',e=>{state.voice=JSON.parse(e.data).people;applyServerMute();renderSidebar();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();injectIcons($('#channelSidebar'));});
   source.addEventListener('message',async e=>{const m=JSON.parse(e.data);
    const visible=state.view==='chat'&&(m.channelId?m.channelId===state.channelId&&!state.dmUserId:state.dmUserId&&[m.senderId,m.dmUserId].includes(state.dmUserId)&&[m.senderId,m.dmUserId].includes(state.me.id));
    if(visible&&!state.messages.some(x=>x.id===m.id)){
     const nearBottom=$('#chatScroll').scrollHeight-$('#chatScroll').scrollTop-$('#chatScroll').clientHeight<230;
-    state.messages.push(m);renderMain();if(nearBottom)scrollDown(true);
+    state.messages.push(m);if(currentChannel()?.type==='voice'&&!state.dmUserId)appendVoiceChatMessage(m);else{renderMain();if(nearBottom)scrollDown(true);}
    }else if(!visible&&m.senderId!==state.me.id){toast(`Nova mensagem de ${person(m.senderId).displayName}`)}
    if(m.dmUserId&&!state.dms.some(u=>u.id===(m.senderId===state.me.id?m.dmUserId:m.senderId))){try{const info=await api('/api/all-users');allUsers=info.users;state.dms.push(person(m.senderId===state.me.id?m.dmUserId:m.senderId));}catch{}}
   });
@@ -856,8 +951,8 @@ async function joinVoice(room){
  try{stream=await navigator.mediaDevices.getUserMedia({audio:audioInputConstraints(),video:false});}
  catch(err){if(audioPrefs.input){audioPrefs.input='';localStorage.removeItem('sinalis-input-device');try{stream=await navigator.mediaDevices.getUserMedia({audio:audioInputConstraints(),video:false});toast('Microfone antigo indisponível. Usando o padrão.')}catch(e){return toast('Libere o microfone: '+e.message,'error')}}else return toast('Libere a permissão do microfone no navegador. '+(err.message||''),'error')}
  try{const d=await api('/api/voice/join','POST',{channelId:room});
-  state.call.room=room;state.call.stream=stream;state.call.minimized=true;state.call.muted=false;state.call.deaf=false;
-  if(!state.voice.some(v=>v.id===state.me.id&&v.room===room))state.voice.push({id:state.me.id,room,muted:false,deaf:false,video:false,sharing:false});
+  state.call.room=room;state.call.stream=stream;state.call.minimized=true;state.call.muted=!!d.serverMuted;state.call.deaf=false;stream.getAudioTracks().forEach(t=>t.enabled=!d.serverMuted);state.permissions.serverMuted=!!d.serverMuted;
+  if(!state.voice.some(v=>v.id===state.me.id&&v.room===room))state.voice.push({id:state.me.id,room,muted:!!d.serverMuted,serverMuted:!!d.serverMuted,deaf:false,video:false,sharing:false});
   renderSidebar();renderVoiceConnected();renderCallDock();renderSelf();renderMain();injectIcons($('#channelSidebar'));
   for(const p of d.people)await createPeer(p.id,true);
   toast('Você entrou na Call!','success');
@@ -866,9 +961,9 @@ async function joinVoice(room){
 async function leaveVoice(){
  const c=state.call;
  for(const pc of c.peers.values())try{clearTimeout(pc._voiceRetry);pc.close()}catch{}
- c.peers.clear();c.remote.clear();c.stream?.getTracks().forEach(t=>t.stop());
+ c.peers.clear();c.remote.clear();c.mediaMeta?.clear();c.stream?.getTracks().forEach(t=>t.stop());
  c.camera?.getTracks().forEach(t=>t.stop());c.screen?.getTracks().forEach(t=>t.stop());
- c.room=null;c.stream=null;c.camera=null;c.screen=null;c.minimized=false;c.muted=false;c.deaf=false;c.audioBlockAlert=false;$$('[data-peer-audio]').forEach(a=>a.remove());closeAudioDeviceMenu();
+ c.room=null;c.stream=null;c.camera=null;c.screen=null;c.minimized=false;c.muted=false;c.deaf=false;c.audioBlockAlert=false;state.permissions.serverMuted=false;$$('[data-peer-audio]').forEach(a=>a.remove());closeAudioDeviceMenu();
  state.voice=state.voice.filter(v=>v.id!==state.me.id);
  try{await api('/api/voice/leave','POST',{})}catch{}
  renderCallDock();renderVoiceConnected();renderSelf();renderSidebar();if(currentChannel()?.type==='voice')renderMain();injectIcons($('#channelSidebar'));
@@ -886,7 +981,7 @@ async function createPeer(id,offer=false){
    let remote=state.call.remote.get(id);
    if(!remote){remote=new MediaStream;state.call.remote.set(id,remote)}
    if(!remote.getTracks().some(t=>t.id===e.track.id))remote.addTrack(e.track);
-   e.track.onended=()=>{remote.removeTrack(e.track);syncRemoteAudio();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain()};syncRemoteAudio();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();
+   e.track.onended=()=>{remote.removeTrack(e.track);syncRemoteAudio();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain()};e.track.onunmute=()=>{if(currentChannel()?.type==='voice'&&state.view==='chat')syncVoiceStageMedia()};syncRemoteAudio();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();
   };
   pc.oniceconnectionstatechange=()=>{
    if(['connected','completed'].includes(pc.iceConnectionState)){clearTimeout(pc._voiceRetry);pc._voiceRetry=null;return}
@@ -902,12 +997,13 @@ async function createPeer(id,offer=false){
   pc.onconnectionstatechange=()=>{if(pc.connectionState==='closed'){clearTimeout(pc._voiceRetry);state.call.peers.delete(id);state.call.remote.delete(id);syncRemoteAudio();renderCallDock()}};
  }
  if(offer){await pc.setLocalDescription(await pc.createOffer());await signal(id,'offer',pc.localDescription);}
- return pc;
+ signal(id,'media-info',{screen:state.call.screen?.getVideoTracks()[0]?.id||null,camera:state.call.camera?.getVideoTracks()[0]?.id||null}).catch(()=>{}); return pc;
 }
 const signal=(to,kind,data)=>api('/api/voice/signal','POST',{to,kind,data});
 async function onSignal({from,kind,data}){
  if(!state.call.room)return;
  let pc=state.call.peers.get(from);
+ if(kind==='media-info'){state.call.mediaMeta.set(from,data||{});if(currentChannel()?.type==='voice'&&state.view==='chat')syncVoiceStageMedia();return;}
  if(kind==='offer'){
   pc=await createPeer(from,false);
   if(pc.signalingState!=='stable')try{await pc.setLocalDescription({type:'rollback'})}catch{}
@@ -997,10 +1093,11 @@ function renderCallDock(){
  if(!state.call.room){$$('[data-peer-audio]').forEach(a=>a.remove());return}
  // Playing remote audio must never depend on opening a floating call panel.
  for(const [id,pc] of state.call.peers){if(!state.voice.some(v=>v.room===state.call.room&&v.id===id)){pc.close();state.call.peers.delete(id);state.call.remote.delete(id)}}
- syncRemoteAudio();}
+ syncRemoteAudio();
+}
 async function updateCallState(changes){try{if(state.call.room)await api('/api/voice/state','POST',changes)}catch{}}
-async function renegotiate(){for(const [id,pc] of state.call.peers){if(pc.signalingState==='stable'){try{await pc.setLocalDescription(await pc.createOffer());await signal(id,'offer',pc.localDescription)}catch(err){console.warn('Renegociação:',err)}}}}
-async function toggleMute(){const c=state.call;c.muted=!c.muted;c.stream?.getAudioTracks().forEach(t=>t.enabled=!c.muted);const meVoice=state.voice.find(v=>v.id===state.me.id&&v.room===c.room);if(meVoice)meVoice.muted=c.muted;await updateCallState({muted:c.muted});renderSelf();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();}
+async function renegotiate(){for(const [id,pc] of state.call.peers){if(pc.signalingState==='stable'){try{await pc.setLocalDescription(await pc.createOffer());await signal(id,'offer',pc.localDescription)}catch(err){console.warn('Renegociação:',err)}}}sendMediaInfo();}
+async function toggleMute(){const c=state.call;if(c.room&&(state.permissions.serverMuted||state.voice.some(v=>v.id===state.me.id&&v.room===c.room&&v.serverMuted)))return toast('O Mestre silenciou seu microfone.','error');c.muted=!c.muted;c.stream?.getAudioTracks().forEach(t=>t.enabled=!c.muted);const meVoice=state.voice.find(v=>v.id===state.me.id&&v.room===c.room);if(meVoice)meVoice.muted=c.muted;await updateCallState({muted:c.muted});renderSelf();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();}
 async function toggleDeaf(){const c=state.call;c.deaf=!c.deaf;$$('[data-peer-audio]').forEach(a=>a.muted=c.deaf);if(!c.deaf){syncRemoteAudio();resumeRemoteAudio().catch(console.error)}await updateCallState({deaf:c.deaf});renderSelf();renderCallDock();}
 async function toggleCamera(){const c=state.call;if(!c.room)return;
  if(c.camera){const tracks=c.camera.getTracks();for(const pc of c.peers.values())for(const sender of pc.getSenders())if(tracks.includes(sender.track))pc.removeTrack(sender);tracks.forEach(t=>t.stop());c.camera=null;}
@@ -1023,9 +1120,11 @@ async function action(a,el){
  const id=el.dataset.id, value=el.dataset.value;
  switch(a){
  case 'dice-open':openDiceModal();break;
+ case 'master-panel':showMasterPanel();break;
+ case 'master-toggle':await toggleMasterPermission(id,el.dataset.kind,el.dataset.enabled==='true');break;
  case 'dice-select':$('#diceSides').value=value;$$('.dice-type').forEach(b=>b.classList.toggle('chosen',b.dataset.value===value));diceUpdateHint();break;
  case 'dice-minus':$('#diceCount').value=Math.max(1,Number($('#diceCount').value||1)-1);diceUpdateHint();break;
- case 'dice-plus':$('#diceCount').value=Math.min(10,Number($('#diceCount').value||1)+1);diceUpdateHint();break;
+ case 'dice-plus':$('#diceCount').value=Math.min(diceLimit(),Number($('#diceCount').value||1)+1);diceUpdateHint();break;
  case 'home':showPage('home');break;
  case 'show-overview':showPage('home');break;
  case 'show-dms':showPage('dms');break;
