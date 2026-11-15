@@ -497,7 +497,7 @@ async function api(req,res,p,params){
   if(p==='/api/voice/leave'&&method==='POST'){leaveVoice(u.id);return tokenize(res,{ok:true});}
   if(p==='/api/voice/state'&&method==='POST'){
     const b=await body(req);const v=voices.get(u.id);if(!v)return error(res,'Não está em chamada.',400);
-    for(const k of ['muted','deaf','video','sharing'])if(b[k]!==undefined)v[k]=!!b[k];if(v.serverMuted)v.muted=true;voiceState();return tokenize(res,{ok:true,muted:v.muted,serverMuted:!!v.serverMuted});
+    for(const k of ['muted','deaf','video','sharing','recording'])if(b[k]!==undefined)v[k]=!!b[k];if(v.serverMuted)v.muted=true;voiceState();return tokenize(res,{ok:true,muted:v.muted,serverMuted:!!v.serverMuted});
   }
   if(p==='/api/voice/signal'&&method==='POST'){
     const b=await body(req);const mine=voices.get(u.id),theirs=voices.get(b.to);
