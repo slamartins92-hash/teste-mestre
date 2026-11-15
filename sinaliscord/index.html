@@ -234,6 +234,46 @@
 .voice-chat-wrapper #messageInput{min-width:0}
 .voice-chat-wrapper .composer-tool{display:none}
 @media(max-width:1030px){.voice-stage{grid-template-columns:minmax(0,1fr);gap:16px}.voice-chat-wrapper{grid-column:1;grid-row:2;position:static;max-height:none;height:380px}.voice-main-column{grid-row:1}}
+
+/* Sinalis V16 — Sessão: 3 colunas fixas, 2 linhas, imagem referencial roxa */
+.voice-stage.session-voice-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,320px);gap:18px;align-items:start;padding:18px 14px 28px;overflow:visible}
+.session-voice-layout .voice-stage-glow{grid-column:1/-1;grid-row:1;z-index:-1}
+.session-voice-layout .session-main-column{grid-column:1;grid-row:1;width:100%;min-width:0;display:flex;align-items:center;flex-direction:column;gap:14px;padding:0}
+.session-title{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid #62218e;background:#160e1f;color:#dfb4ff;padding:10px 15px;border-radius:13px}
+.session-title span{font-size:17px;font-weight:850;letter-spacing:.09em}
+.session-title small{font-size:11px;color:#b58fd5}
+.session-grid-viewport{width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;border-radius:13px}
+.session-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(170px,1fr));grid-template-areas:"master knight manuela" "share luska mafe";gap:6px;min-width:585px;padding:5px;background:#11051b;border:1px solid #4d157d;border-radius:15px}
+.session-seat,.session-share-spot{position:relative;overflow:hidden;min-width:0;min-height:180px;border:2px solid #7512b9;border-radius:8px;background:#050307;box-shadow:inset 0 0 17px #3d12604d,0 0 9px #6101ac40}
+.session-seat-live{border-color:#aa3af0;box-shadow:inset 0 0 21px #49136670,0 0 14px #821ee8a0}
+.session-seat-identity{height:100%;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:7px;padding:8px 8px 25px;background:transparent;color:#f2dcff;border:0;cursor:pointer;min-width:0}
+.session-seat-identity:disabled{cursor:default}
+.session-seat-avatar{width:78px;height:78px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;box-shadow:0 0 0 2px #7c3996,0 0 22px #7317a962}
+.session-seat-avatar .avatar{width:78px!important;height:78px!important;display:block;overflow:hidden;border-radius:50%}
+.session-seat-avatar .avatar img{object-fit:cover;width:100%;height:100%}
+.session-seat-avatar video{width:100%;height:100%;object-fit:cover}
+.session-empty-icon{font-size:42px;color:#844daa}
+.session-seat-identity strong{display:block;max-width:96%;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-seat-identity small{font-size:10px;color:#b79bbf}
+.session-seat-label{position:absolute;left:0;right:0;bottom:0;background:#200a32e8;color:#bba0d0;font-size:10px;letter-spacing:.08em;padding:4px 6px;text-transform:uppercase}
+.session-share-spot{display:flex;flex-direction:column}
+.session-share-head{display:flex;align-items:center;justify-content:space-between;gap:5px;padding:7px 8px;color:#d9b2fc;font-size:11px;background:#1c0a2b}
+.session-share-head span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-expand-btn,.voice-screen-expand{cursor:pointer;background:#4d206c;border:1px solid #a153e1;color:#f2dcff;border-radius:8px;padding:5px 8px;font-size:11px;white-space:nowrap}
+.session-expand-btn:hover,.voice-screen-expand:hover{background:#692a90}
+.session-share-video{width:100%!important;aspect-ratio:auto!important;height:100%!important;min-height:0;flex:1;border:0!important;border-radius:0!important;box-shadow:none!important;background:#030205!important}
+.session-share-video video{width:100%;height:100%;object-fit:contain}
+.session-share-idle{display:flex;align-items:center;justify-content:center;gap:6px;flex:1;flex-direction:column;color:#a878c7;background:#050307}
+.session-share-idle span{font-size:37px;color:#7524b3}
+.session-share-idle small{font-size:11px}.session-share-idle em{font-style:normal;font-size:10px;color:#756080}
+.session-voice-layout .voice-chat-wrapper{grid-column:2;grid-row:1;position:sticky;top:10px;width:100%;min-width:0;max-height:calc(100vh - 170px);height:clamp(400px,calc(100vh - 185px),820px);margin:0}
+.session-voice-layout .voice-stage-bottom{width:100%;margin:5px 0 0}
+.voice-screen-frame:fullscreen,.voice-screen-frame.screen-expanded-fallback{position:fixed!important;inset:0!important;z-index:99999!important;width:100vw!important;height:100vh!important;max-width:none!important;max-height:none!important;aspect-ratio:auto!important;background:#050306!important;border:0!important;border-radius:0!important;display:flex!important;justify-content:center!important;align-items:center!important}
+.voice-screen-frame:fullscreen video,.voice-screen-frame.screen-expanded-fallback video{width:100%!important;height:100%!important;object-fit:contain!important}
+.screen-fullscreen-close{position:absolute;top:17px;right:19px;z-index:5;border:1px solid #ad61d9;color:#fff;background:#3b1656d9;border-radius:9px;padding:9px 13px;cursor:pointer}
+.voice-screen-frame:not(:fullscreen):not(.screen-expanded-fallback) .screen-fullscreen-close{display:none}
+@media(max-width:1370px){.voice-stage.session-voice-layout{grid-template-columns:minmax(0,1fr)}.session-voice-layout .voice-chat-wrapper{grid-column:1;grid-row:2;position:static;width:100%;max-height:none;height:340px}}
+@media(max-width:720px){.voice-stage.session-voice-layout{padding:10px 7px 18px}.session-grid{min-width:570px;grid-template-rows:repeat(2,170px)}.session-title{padding:10px}.session-voice-layout .voice-chat-wrapper{height:320px}}
 </style>
 <style id="sinalis-v4-fix">
 #authSubmit{position:relative;z-index:40;pointer-events:auto!important;min-height:48px;cursor:pointer!important}
@@ -662,6 +702,72 @@ function sendMediaInfo(){const c=state.call;if(!c.room)return;
  for(const id of c.peers.keys())signal(id,'media-info',data).catch(()=>{});
 }
 
+
+function renderSessionCall(ch,participants,connected){
+ const member=name=>state.members.find(u=>String(u.username||'').toLowerCase()===name.toLowerCase());
+ const master=state.members.find(u=>u.role==='mestre')||member('Pingu');
+ const seat=(user,fallback,area)=>{
+  const occupant=user?participants.find(p=>p.id===user.id):null;
+  const here=!!occupant;
+  let cameraMarkup='';
+  if(here&&connected&&occupant.video){
+   if(user.id===state.me.id&&state.call.camera)cameraMarkup=`<video autoplay muted playsinline data-stage-local-camera></video>`;
+   else if(state.call.remote.get(user.id)?.getVideoTracks().some(t=>t.readyState==='live'))
+    cameraMarkup=`<video autoplay muted playsinline data-stage-remote-camera="${E(user.id)}"></video>`;
+  }
+  const photo=user?avatar(user,92):'<span class="session-empty-icon">✦</span>';
+  const name=E(user?.displayName||fallback);
+  const status=here?(occupant.serverMuted?'Silenciado pelo Mestre':occupant.muted?'Microfone desligado':'Na Sessão'):'Aguardando entrar';
+  const attr=user?`data-action="open-member" data-id="${E(user.id)}"`:'disabled';
+  return `<div class="session-seat ${here?'session-seat-live':''}" style="grid-area:${area}">
+    <button type="button" class="session-seat-identity" ${attr} title="${name}">
+      <span class="session-seat-avatar">${cameraMarkup||photo}</span>
+      <strong>${name}</strong><small>${E(status)}</small>
+    </button>
+    <span class="session-seat-label">${E(fallback)}</span>
+  </div>`;
+ };
+ const sharingUsers=participants.filter(p=>p.sharing);
+ const activeShare=sharingUsers.find(p=>p.id===master?.id)||sharingUsers[0]||null;
+ const sharer=activeShare?person(activeShare.id):null;
+ const hasShare=!!activeShare&&connected;
+ const shareVideo=hasShare?(activeShare.id===state.me.id&&state.call.screen
+  ?'<video autoplay playsinline muted data-stage-local-screen></video>'
+  :`<video autoplay playsinline muted data-stage-remote-screen="${E(activeShare.id)}"></video>`):'';
+ const shareSlot=`<div class="session-share-spot" style="grid-area:share" aria-label="Transmissão abaixo do Mestre">
+  <div class="session-share-head"><span>▣ Transmissão ${sharer?'de '+E(sharer.displayName):'do Mestre'}</span>
+   ${hasShare?'<button type="button" class="session-expand-btn" data-action="expand-screen" title="Aumentar transmissão na sua tela">⛶ Ampliar</button>':''}
+  </div>
+  ${hasShare?`<div class="voice-screen-frame session-share-video">${shareVideo}</div>`
+  :'<div class="session-share-idle"><span>▣</span><small>Compartilhamento de tela</small><em>Aguardando transmissão</em></div>'}
+ </div>`;
+ const chatLabel='Chat da Sessão';
+ return `<div class="voice-stage session-voice-layout">
+  <div class="voice-stage-glow"></div>
+  <div class="voice-main-column session-main-column">
+   <div class="session-title"><span>✦ SESSÃO</span><small>RPG • Lugares fixos</small></div>
+   <div class="session-grid-viewport"><div class="session-grid">
+    ${seat(master,'Mestre','master')}
+    ${seat(member('Knight'),'Knight','knight')}
+    ${seat(member('Manuela'),'Manuela','manuela')}
+    ${shareSlot}
+    ${seat(member('Luska'),'Luska','luska')}
+    ${seat(member('Mafe'),'Mafe','mafe')}
+   </div></div>
+   <div class="voice-stage-bottom">
+    ${connected?inlineCallControls():`<button class="primary-btn voice-join-btn" data-action="join-voice" data-id="${E(ch.id)}">🔊 Entrar na Sessão</button>`}
+    <p class="call-tip">A transmissão fica abaixo do Mestre. Para assistir, entre na Sessão.</p>
+   </div>
+  </div>
+  <section class="voice-chat-wrapper" aria-label="${chatLabel}">
+   <div class="voice-chat-head"><span>💬 ${chatLabel}</span><small>${state.messages.length} mensagens</small></div>
+   <div class="voice-chat-messages" id="voiceChatMessages">
+    ${state.messages.length?state.messages.map(renderMessage).join(''):'<p class="voice-chat-empty">Nenhuma mensagem ainda. Entre na Sessão para conversar! :p</p>'}
+   </div>
+  </section>
+ </div>`;
+}
+
 function renderMain(){
  const chat=$('#chatScroll');const compose=$('#composeArea');
  // Preserve the same input form and event listeners when switching between chat and Call.
@@ -674,6 +780,14 @@ function renderMain(){
   $('#messageInput').placeholder='Mensagem no chat da Call';$('#messageInput').disabled=!inVoice;
   const participants=voicePeople(ch.id);
   const connected=state.call.room===ch.id;
+  if(['sessão','sessao'].includes(ch.name.toLowerCase())){
+   chat.innerHTML=renderSessionCall(ch,participants,connected);
+   const callPanel=chat.querySelector('.voice-chat-wrapper');
+   if(callPanel)callPanel.append(compose);
+   $('#messageInput').placeholder='Mensagem no chat da Sessão';
+   injectIcons(chat);syncVoiceStageMedia();
+   return;
+  }
   const sharer=connected&&state.call.screen
    ? {type:'local',id:state.me.id,user:state.me}
    : participants.map(v=>({v,u:person(v.id)})).find(x=>x.v.sharing && state.call.remote.get(x.v.id)?.getVideoTracks().length)
@@ -690,7 +804,7 @@ function renderMain(){
    cameraTiles.push(`<div class="voice-camera-tile"><video autoplay muted playsinline data-stage-remote-camera="${E(member.id)}"></video><span>${E(person(member.id).displayName)} • câmera</span></div>`);
   }
   const stageCamera=cameraTiles.length?`<div class="voice-cameras-grid">${cameraTiles.join('')}</div>`:'';
-  const stageShare=sharer?`<section class="voice-screen-stage" aria-label="Transmissão de ${E(sharer.user.displayName)}"><div class="voice-screen-live"><span class="voice-screen-live-dot"></span><strong>${E(sharer.user.displayName)}</strong> está compartilhando a tela <button class="voice-screen-retry" data-action="retry-screen" title="Retomar vídeo se ficar preto">↻ Retomar vídeo</button></div><div class="voice-screen-frame">${sharer.type==='local'?`<video autoplay playsinline muted data-stage-local-screen></video>`:`<video autoplay playsinline muted data-stage-remote-screen="${E(sharer.id)}"></video>`}</div></section>`:'';
+  const stageShare=sharer?`<section class="voice-screen-stage" aria-label="Transmissão de ${E(sharer.user.displayName)}"><div class="voice-screen-live"><span class="voice-screen-live-dot"></span><strong>${E(sharer.user.displayName)}</strong> está compartilhando a tela <button class="voice-screen-retry" data-action="retry-screen" title="Retomar vídeo se ficar preto">↻ Retomar vídeo</button> <button class="voice-screen-expand" data-action="expand-screen" title="Aumentar transmissão na sua tela">⛶ Ampliar</button></div><div class="voice-screen-frame">${sharer.type==='local'?`<video autoplay playsinline muted data-stage-local-screen></video>`:`<video autoplay playsinline muted data-stage-remote-screen="${E(sharer.id)}"></video>`}</div></section>`:'';
   chat.innerHTML=`<div class="voice-stage"><div class="voice-stage-glow"></div><div class="voice-main-column"><div class="voice-stage-heading"><span class="voice-stage-symbol">${I('volume')}</span><p>CANAL DE VOZ</p><h1>✦ Call</h1><span>${sharer?'A transmissão aparece logo abaixo das fotos.':'Entre para conversar com o pessoal do sinais escarlate.'}</span></div><div class="voice-people-grid">${tiles||`<div class="voice-nobody">${I('users')}<span>Ainda não tem ninguém na Call.<br>Seja a primeira pessoa a entrar! :p</span></div>`}</div>${stageCamera}${stageShare}<div class="voice-stage-bottom">${!connected?`<button class="primary-btn voice-join-btn" data-action="join-voice" data-id="${E(ch.id)}">${I('volume')} Entrar na Call</button>`:inlineCallControls()}<p class="call-tip">${window.SINALIS_OFFLINE?'Demonstração local: a tela compartilhada aparece abaixo da foto; o áudio entre pessoas continua só na versão com servidor.':'Para falar com outras pessoas, permita o microfone. Ao compartilhar a tela, ela aparecerá abaixo das fotos.'}</p></div></div><section class="voice-chat-wrapper" aria-label="Chat da Call"><div class="voice-chat-head"><span>💬 Chat da Call</span><small>${state.messages.length} mensagens</small></div><div class="voice-chat-messages" id="voiceChatMessages">${state.messages.length?state.messages.map(renderMessage).join(''):'<p class="voice-chat-empty">Nenhuma mensagem ainda. Entre na Call e mande a primeira! :p</p>'}</div></section></div>`;
   const callPanel=chat.querySelector(".voice-chat-wrapper");
   if(callPanel)callPanel.append(compose);
@@ -710,7 +824,7 @@ function renderMain(){
  if(readOnly)html+=`<p style="padding:10px 14px;color:#a7838f;font-size:12px">${I('lock')} Somente a equipe pode enviar mensagens neste canal.</p>`;
  chat.innerHTML=html;injectIcons(chat);
 }
-function welcomeHero(){return `<section class="channel-welcome"><div class="hero"><img class="hero-logo" src="assets/logo.png" alt="Logo"><div class="hero-text"><div class="hero-eyebrow">Bem-vindo(a) ao</div><h1 class="hero-title">${E(state.server.name)}</h1><div class="hero-line"></div><div class="hero-desc">O nosso espaço escarlate. Converse no geral, compartilhe imagens e role dados para a sua aventura.</div></div></div><div class="quick-links">${[['geral','hash','Converse com todos'],['midias','image','Imagens e vídeos'],['dados','dice','Histórico de rolagens'],['Call','volume','Entre na Call']].map(([n,i,desc])=>{const ch=state.channels.find(c=>c.name===n);return ch?`<button class="quick-link" data-action="open-channel" data-id="${E(ch.id)}">${I(i)}<span><b>${ch.type==='voice'?'🔊':'#'} ${E(n)}</b><small>${E(desc)}</small></span></button>`:''}).join('')}</div></section>`;}
+function welcomeHero(){return `<section class="channel-welcome"><div class="hero"><img class="hero-logo" src="assets/logo.png" alt="Logo"><div class="hero-text"><div class="hero-eyebrow">Bem-vindo(a) ao</div><h1 class="hero-title">${E(state.server.name)}</h1><div class="hero-line"></div><div class="hero-desc">O nosso espaço escarlate. Converse no geral, compartilhe imagens e role dados para a sua aventura.</div></div></div><div class="quick-links">${[['geral','hash','Converse com todos'],['midias','image','Imagens e vídeos'],['dados','dice','Histórico de rolagens'],['Call','volume','Entre na Call'],['Sessão','volume','RPG com lugares fixos']].map(([n,i,desc])=>{const ch=state.channels.find(c=>c.name===n);return ch?`<button class="quick-link" data-action="open-channel" data-id="${E(ch.id)}">${I(i)}<span><b>${ch.type==='voice'?'🔊':'#'} ${E(n)}</b><small>${E(desc)}</small></span></button>`:''}).join('')}</div></section>`;}
 function markdown(input){
  let s=E(input);s=s.replace(/(https?:\/\/[^\s<]+)/g, m=>`<a href="${m.replace(/&amp;/g,'&')}" target="_blank" rel="noopener noreferrer">${m}</a>`);
  s=s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<code>$1</code>');
@@ -1216,6 +1330,25 @@ async function action(a,el){
  case 'toggle-camera':await toggleCamera();break;
  case 'toggle-screen':await toggleScreen();break;
  case 'retry-screen':renderMain();syncVoiceStageMedia();toast('Prévia de vídeo atualizada.','success');break;
+ case 'expand-screen':{
+  const container=el.closest('.session-share-spot,.voice-screen-stage');
+  const frame=container?.querySelector('.voice-screen-frame');
+  if(!frame)return toast('Nenhuma transmissão disponível para ampliar.','error');
+  if(document.fullscreenElement){await document.exitFullscreen();break;}
+  const close=document.createElement('button');
+  close.className='screen-fullscreen-close';
+  close.type='button';close.dataset.action='collapse-screen';close.textContent='✕ Sair da tela cheia';
+  frame.append(close);
+  try{if(frame.requestFullscreen)await frame.requestFullscreen();else frame.classList.add('screen-expanded-fallback');}
+  catch{frame.classList.add('screen-expanded-fallback')}
+  break;
+ }
+ case 'collapse-screen':{
+  if(document.fullscreenElement)await document.exitFullscreen().catch(()=>{});
+  $$('.screen-expanded-fallback').forEach(e=>e.classList.remove('screen-expanded-fallback'));
+  $$('.screen-fullscreen-close').forEach(e=>e.remove());
+  break;
+ }
  case 'show-help':modal(`<h2>Como usar o Sinalis</h2><p>Seu espaço escarlate para conversas com outras pessoas.</p><div class="subheading">COMECE POR AQUI</div><p>Crie sua conta, escolha o canal <b>#geral</b> e envie sua primeira mensagem. Clique nos nomes para abrir o perfil e iniciar uma DM.</p><p><b>Arquivos:</b> use o botão + no chat. <b>Voz:</b> clique em um canal de voz e permita o microfone. <b>Convites:</b> abra o menu do servidor.</p><p>Pingu é o <b>Mestre</b>. Os demais integrantes são <b>Players</b>.</p><p class="subtle">Para usar com amigos em outros computadores, hospede este servidor Node.js em uma URL HTTPS. A câmera, o microfone e o compartilhamento de tela dependem das permissões do navegador e das condições da rede.</p>`);break;
  }
 }
