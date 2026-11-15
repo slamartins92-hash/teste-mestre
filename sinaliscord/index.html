@@ -280,6 +280,7 @@
 #auth .auth-card{isolation:isolate;z-index:10}
 #auth .auth-tab,#auth input{position:relative;z-index:2;pointer-events:auto}
 </style>
+<link rel="stylesheet" href="/session-recorder-v17.css" />
 </head>
 <body>
 <div class="auth-screen" id="auth">
@@ -785,7 +786,7 @@ function renderMain(){
    const callPanel=chat.querySelector('.voice-chat-wrapper');
    if(callPanel)callPanel.append(compose);
    $('#messageInput').placeholder='Mensagem no chat da Sessão';
-   injectIcons(chat);syncVoiceStageMedia();
+   injectIcons(chat);syncVoiceStageMedia();window.SinalisV17?.decorateSession();
    return;
   }
   const sharer=connected&&state.call.screen
@@ -899,7 +900,7 @@ function showMasterPanel(){
  if(!isStaff())return toast('Apenas o Mestre pode moderar o servidor.','error');
  const blocked=state.permissions.diceBlockedUsers||{},muted=state.permissions.voiceMutedUsers||{};
  const players=state.members.filter(x=>x.role!=='mestre');
- modal(`<h2>✦ Controles do Mestre</h2><p class="master-desc">Silencie microfones e permita ou bloqueie rolagens. As alterações valem para todos e são salvas no servidor.</p><div class="master-list">${players.map(u=>`<div class="master-person"><div class="master-person-top">${avatar(u,42)}<strong>${E(u.displayName)}</strong></div><div class="master-person-actions"><button data-action="master-toggle" data-id="${E(u.id)}" data-kind="voice" data-enabled="${muted[u.id]?'false':'true'}" class="${muted[u.id]?'master-danger':'master-neutral'}">${I(muted[u.id]?'mic-off':'mic')} ${muted[u.id]?'Permitir falar':'Mutar na Call'}</button><button data-action="master-toggle" data-id="${E(u.id)}" data-kind="dice" data-enabled="${blocked[u.id]?'false':'true'}" class="${blocked[u.id]?'master-danger':'master-neutral'}">${I('dice')} ${blocked[u.id]?'Liberar dados':'Bloquear dados'}</button></div></div>`).join('')}</div><p class="master-desc">Você pode jogar até 200 dados por rolagem. Players: até 10.</p>`);
+ modal(`<h2>✦ Controles do Mestre</h2><p class="master-desc">Silencie microfones e permita ou bloqueie rolagens. As alterações valem para todos e são salvas no servidor.</p><div class="master-list">${players.map(u=>`<div class="master-person"><div class="master-person-top">${avatar(u,42)}<strong>${E(u.displayName)}</strong></div><div class="master-person-actions"><button data-action="master-toggle" data-id="${E(u.id)}" data-kind="voice" data-enabled="${muted[u.id]?'false':'true'}" class="${muted[u.id]?'master-danger':'master-neutral'}">${I(muted[u.id]?'mic-off':'mic')} ${muted[u.id]?'Permitir falar':'Mutar na Call'}</button><button data-action="master-toggle" data-id="${E(u.id)}" data-kind="dice" data-enabled="${blocked[u.id]?'false':'true'}" class="${blocked[u.id]?'master-danger':'master-neutral'}">${I('dice')} ${blocked[u.id]?'Liberar dados':'Bloquear dados'}</button></div></div>`).join('')}</div><p class="master-desc">Você pode jogar até 200 dados por rolagem. Players: até 10.</p><div class="modal-footer"><button class="primary-btn" data-action="session-rec-gallery" type="button">▣ Gravações privadas da Sessão</button></div>`);
 }
 async function toggleMasterPermission(id,kind,enabled){
  if(!isStaff())return toast('Acesso negado.','error');
@@ -1027,7 +1028,7 @@ async function connectEvents(){
  if(!state.token)return;
  try{
   const {ticket}=await api('/api/event-ticket','POST');if(state.source)state.source.close();
-  const source=new EventSource('/api/events?ticket='+encodeURIComponent(ticket));state.source=source;
+  const source=new EventSource('/api/events?ticket='+encodeURIComponent(ticket));state.source=source;window.SinalisV17?.bindEvents(source);
   source.addEventListener('presence',e=>{state.online=JSON.parse(e.data).online;renderMembers();renderSelf();injectIcons($('#selfBar'));if(['home','dms'].includes(state.view))renderMain();});
   source.addEventListener('dice-roll',e=>{try{onDiceRollEvent(JSON.parse(e.data))}catch(err){console.error(err)}});  source.addEventListener('moderation',e=>{
    const p=JSON.parse(e.data);if(p.serverId!==state.server?.id)return;
@@ -1438,5 +1439,6 @@ init();
 
 
 </script>
+<script src="/session-recorder-v17.js"></script>
 </body>
 </html>
