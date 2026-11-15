@@ -162,6 +162,22 @@
 @media(max-width:700px){.dice-v12-content{height:92dvh}.dice-v12-canvas{height:clamp(280px,50vh,410px)}.dice-v12-top{gap:5px}.dice-v12-eyebrow{letter-spacing:.09em;font-size:9px}.dice-v12-summary{gap:8px;padding:8px 12px}.dice-v12-log{display:none}}
 @media(prefers-reduced-motion:reduce){.dice-v12-top,.dice-v12-summary{transition:none}.dice-v12-scrim{animation:none}}
 
+
+/* Sinalis v13 — controles de dispositivos */
+.call-control-btn.control-caret{height:46px;width:27px;display:grid;place-items:center;padding:0;background:transparent!important;align-self:center;border-radius:10px}
+.call-control-btn.control-caret svg{width:16px;height:16px;stroke-width:2.4}
+.call-control-btn.control-caret:hover{background:#392831!important}
+.audio-device-popup{position:fixed;z-index:99990;width:min(320px,calc(100vw - 18px));max-height:min(420px,calc(100dvh - 24px));overflow:auto;padding:14px;background:#201219;border:1px solid #945067;border-radius:15px;box-shadow:0 16px 70px #000c;text-align:left}
+.audio-device-popup .audio-device-title{font-size:14px;font-weight:800;margin:0 0 5px;color:#ffe0e7}
+.audio-device-popup .audio-device-info{font-size:11px;line-height:1.5;color:#d4a8b6;margin:0 0 10px}
+.audio-device-popup .audio-device-option{display:flex;align-items:center;gap:9px;width:100%;min-height:42px;padding:9px 8px;margin:3px 0;text-align:left;border:1px solid transparent;border-radius:8px;color:#ffeff2;background:#2a1920;font-size:12px;overflow-wrap:anywhere}
+.audio-device-popup .audio-device-option:hover{background:#42212d}
+.audio-device-popup .audio-device-option.selected{background:#472033;border-color:#b24668}
+.audio-device-popup .audio-device-option svg{width:17px;height:17px;flex:none}
+.audio-device-popup .audio-device-divider{height:1px;background:#603342;margin:10px 0}
+.audio-device-popup .audio-device-note{font-size:11px;color:#c99fac;line-height:1.5;margin-top:9px}
+.call-controls-a4 .call-control-group{align-items:center;gap:3px}
+.call-sound-activate{background:#7e304a!important;color:#fff!important;font-size:12px!important;padding:8px!important}
 </style>
 <style id="sinalis-v4-fix">
 #authSubmit{position:relative;z-index:40;pointer-events:auto!important;min-height:48px;cursor:pointer!important}
@@ -461,6 +477,10 @@ const I=name=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 function injectIcons(root=document){$$('[data-ico]',root).forEach(el=>{el.innerHTML=I(el.dataset.ico);el.removeAttribute('data-ico');});if(window.SINALIS_LOGO_URL)$$('img[src="assets/logo.png"]',root).forEach(img=>{img.src=window.SINALIS_LOGO_URL;});}
 const state={token:localStorage.getItem('sinalis-token')||'',me:null,server:null,servers:[],channels:[],members:[],dms:[],online:[],voice:[],messages:[],channelId:null,dmUserId:null,view:'chat',attachment:null,replyId:null,authMode:'login',search:'',source:null,typing:{},typingLast:0,read:{},call:{room:null,stream:null,peers:new Map(),remote:new Map(),muted:false,deaf:false,camera:null,screen:null,minimized:false}};
 const key=(suffix)=>'sinalis-'+suffix;
+const audioPrefs={input:localStorage.getItem('sinalis-input-device')||'',output:localStorage.getItem('sinalis-output-device')||''};
+function audioInputConstraints(){return {echoCancellation:true,noiseSuppression:true,autoGainControl:true,...(audioPrefs.input?{deviceId:{exact:audioPrefs.input}}:{})}}
+function deviceArrow(kind){return '<button class="call-control-btn control-caret" data-action="audio-device-menu" data-kind="'+kind+'" title="'+(kind==='audioinput'?'Escolher microfone':'Escolher fone ou saída de áudio')+'" aria-label="Escolher '+(kind==='audioinput'?'microfone':'saída de áudio')+'">'+I('arrow')+'</button>'}
+
 const isStaff=()=>state.server?.role==='mestre';
 const canManage=()=>state.server?.role==='mestre';
 const currentChannel=()=>state.channels.find(c=>c.id===state.channelId);
@@ -545,7 +565,7 @@ function renderMembers(){
 }
 function inlineCallControls(){
  const c=state.call;
- return `<div class="call-controls call-controls-a4 inline-call-controls"><div class="call-control-group"><button class="call-control-btn ${c.muted?'selected-red':''}" data-action="toggle-mute" title="Mutar microfone">${I(c.muted?'mic-off':'mic')}</button><button class="call-control-btn control-caret" title="Mais opções do microfone">${I('arrow')}</button><button class="call-control-btn ${c.screen?'selected-red':''}" data-action="toggle-screen" title="Compartilhar tela">${I('monitor')}</button></div><div class="call-control-group"><button class="call-control-btn ${c.deaf?'selected-purple deafened':''}" data-action="toggle-deaf" title="Desligar o áudio que você ouve">${I('headphones')}</button><button class="call-control-btn" data-action="minimize-call" title="Mais opções">${I('more')}</button></div><button class="call-end-btn" data-action="leave-voice" title="Sair da Call">${I('log')}</button></div>`;
+ return `<div class="call-controls call-controls-a4 inline-call-controls"><div class="call-control-group"><button class="call-control-btn ${c.muted?'selected-red':''}" data-action="toggle-mute" title="Mutar microfone">${I(c.muted?'mic-off':'mic')}</button>${deviceArrow('audioinput')}<button class="call-control-btn ${c.screen?'selected-red':''}" data-action="toggle-screen" title="Compartilhar tela">${I('monitor')}</button></div><div class="call-control-group"><button class="call-control-btn ${c.deaf?'selected-purple deafened':''}" data-action="toggle-deaf" title="Desligar o áudio que você ouve">${I('headphones')}</button>${deviceArrow('audiooutput')}<button class="call-control-btn" data-action="minimize-call" title="Mais opções">${I('more')}</button></div><button class="call-end-btn" data-action="leave-voice" title="Sair da Call">${I('log')}</button></div>`;
 }
 
 function syncVoiceStageMedia(){
@@ -733,7 +753,11 @@ async function connectEvents(){
   source.addEventListener('channel-update',()=>refreshFromEvent().catch(()=>{}));
   source.addEventListener('server-update',()=>refreshFromEvent().catch(()=>{}));
   source.addEventListener('signal',e=>onSignal(JSON.parse(e.data)).catch(console.error));
-  source.onerror=()=>{source.close();if(state.token){clearTimeout(sseRetry);sseRetry=setTimeout(connectEvents,2400)}};
+  source.onopen=()=>{if(state.call.room&&state.call.signalingLost){state.call.signalingLost=false;(async()=>{
+   const {people}=await api('/api/voice/join','POST',{channelId:state.call.room});
+   for(const p of people){if(!state.call.peers.has(p.id)){await createPeer(p.id,true)}else if(state.call.peers.get(p.id).iceConnectionState==='failed'){const pc=state.call.peers.get(p.id);if(pc.signalingState==='stable'){pc.restartIce();await pc.setLocalDescription(await pc.createOffer({iceRestart:true}));await signal(p.id,'offer',pc.localDescription)}}}
+  })().catch(err=>console.warn('Reconexão de voz:',err))}};
+  source.onerror=()=>{source.close();state.call.signalingLost=!!state.call.room;if(state.token){clearTimeout(sseRetry);sseRetry=setTimeout(connectEvents,2400)}};
  }catch(err){clearTimeout(sseRetry);sseRetry=setTimeout(connectEvents,4000);}
 }
 function renderTyping(){const typed=Object.entries(state.typing).filter(([id,v])=>Date.now()-v.time<3000&&id!==state.me.id&&(state.dmUserId?v.dmUserId===state.me.id:v.channelId===state.channelId)).map(([id])=>person(id).displayName);
@@ -754,8 +778,8 @@ async function joinVoice(room){
  }
  if(!window.RTCPeerConnection||!navigator.mediaDevices?.getUserMedia)return toast('Este navegador precisa de WebRTC e HTTPS (ou localhost) para usar chamadas.','error');
  let stream;
- try{stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}
- catch(err){return toast('Libere a permissão do microfone no navegador. '+(err.message||''),'error')}
+ try{stream=await navigator.mediaDevices.getUserMedia({audio:audioInputConstraints(),video:false});}
+ catch(err){if(audioPrefs.input){audioPrefs.input='';localStorage.removeItem('sinalis-input-device');try{stream=await navigator.mediaDevices.getUserMedia({audio:audioInputConstraints(),video:false});toast('Microfone antigo indisponível. Usando o padrão.')}catch(e){return toast('Libere o microfone: '+e.message,'error')}}else return toast('Libere a permissão do microfone no navegador. '+(err.message||''),'error')}
  try{const d=await api('/api/voice/join','POST',{channelId:room});
   state.call.room=room;state.call.stream=stream;state.call.minimized=true;state.call.muted=false;state.call.deaf=false;
   if(!state.voice.some(v=>v.id===state.me.id&&v.room===room))state.voice.push({id:state.me.id,room,muted:false,deaf:false,video:false,sharing:false});
@@ -766,10 +790,10 @@ async function joinVoice(room){
 }
 async function leaveVoice(){
  const c=state.call;
- for(const pc of c.peers.values())try{pc.close()}catch{}
+ for(const pc of c.peers.values())try{clearTimeout(pc._voiceRetry);pc.close()}catch{}
  c.peers.clear();c.remote.clear();c.stream?.getTracks().forEach(t=>t.stop());
  c.camera?.getTracks().forEach(t=>t.stop());c.screen?.getTracks().forEach(t=>t.stop());
- c.room=null;c.stream=null;c.camera=null;c.screen=null;c.minimized=false;c.muted=false;c.deaf=false;
+ c.room=null;c.stream=null;c.camera=null;c.screen=null;c.minimized=false;c.muted=false;c.deaf=false;c.audioBlockAlert=false;$$('[data-peer-audio]').forEach(a=>a.remove());closeAudioDeviceMenu();
  state.voice=state.voice.filter(v=>v.id!==state.me.id);
  try{await api('/api/voice/leave','POST',{})}catch{}
  renderCallDock();renderVoiceConnected();renderSelf();renderSidebar();if(currentChannel()?.type==='voice')renderMain();injectIcons($('#channelSidebar'));
@@ -787,9 +811,20 @@ async function createPeer(id,offer=false){
    let remote=state.call.remote.get(id);
    if(!remote){remote=new MediaStream;state.call.remote.set(id,remote)}
    if(!remote.getTracks().some(t=>t.id===e.track.id))remote.addTrack(e.track);
-   e.track.onended=()=>{remote.removeTrack(e.track);renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain()};renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();
+   e.track.onended=()=>{remote.removeTrack(e.track);syncRemoteAudio();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain()};syncRemoteAudio();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();
   };
-  pc.onconnectionstatechange=()=>{if(['closed','failed'].includes(pc.connectionState)){state.call.peers.delete(id);state.call.remote.delete(id);try{pc.close()}catch{}renderCallDock()}};
+  pc.oniceconnectionstatechange=()=>{
+   if(['connected','completed'].includes(pc.iceConnectionState)){clearTimeout(pc._voiceRetry);pc._voiceRetry=null;return}
+   if(['disconnected','failed'].includes(pc.iceConnectionState) && !pc._voiceRetry){
+    pc._voiceRetry=setTimeout(async()=>{
+     pc._voiceRetry=null;
+     if(!state.call.room||pc.signalingState!=='stable'||['connected','completed','closed'].includes(pc.iceConnectionState))return;
+     if(String(state.me.id).localeCompare(String(id))>0)return; // um lado oferece, evita colisão
+     try{pc.restartIce();await pc.setLocalDescription(await pc.createOffer({iceRestart:true}));await signal(id,'offer',pc.localDescription)}catch(err){console.warn('Falha ao reconectar voz:',err)}
+    },2800);
+   }
+  };
+  pc.onconnectionstatechange=()=>{if(pc.connectionState==='closed'){clearTimeout(pc._voiceRetry);state.call.peers.delete(id);state.call.remote.delete(id);syncRemoteAudio();renderCallDock()}};
  }
  if(offer){await pc.setLocalDescription(await pc.createOffer());await signal(id,'offer',pc.localDescription);}
  return pc;
@@ -813,29 +848,96 @@ async function onSignal({from,kind,data}){
   else pc._queue.push(new RTCIceCandidate(data));
  }
 }
+
+function syncRemoteAudio(){
+ const c=state.call;
+ for(const [id,remote] of c.remote){
+  const tracks=remote.getAudioTracks();
+  if(!tracks.length)continue;
+  let audio=$$('[data-peer-audio]').find(a=>a.dataset.peerAudio===id);
+  if(!audio){audio=document.createElement('audio');audio.dataset.peerAudio=id;audio.autoplay=true;audio.playsInline=true;audio.preload='auto';document.body.append(audio)}
+  if(audio.srcObject!==remote)audio.srcObject=remote;
+  audio.muted=!!c.deaf;
+  if(typeof audio.setSinkId==='function' && audio.sinkId!==(audioPrefs.output||''))audio.setSinkId(audioPrefs.output||'').catch(()=>{});
+  if(!c.deaf && audio.paused)audio.play().catch(err=>{
+   if(err.name==='NotAllowedError'&&!c.audioBlockAlert){c.audioBlockAlert=true;toast('Seu navegador bloqueou o som automático. Clique no fone para ativar o áudio.','error')}
+  });
+ }
+ $$('[data-peer-audio]').forEach(audio=>{if(!c.remote.has(audio.dataset.peerAudio))audio.remove()});
+}
+async function resumeRemoteAudio(){
+ let failed=0;
+ for(const a of $$('[data-peer-audio]')){a.muted=!!state.call.deaf;try{if(!state.call.deaf)await a.play()}catch{failed++}}
+ if(failed)toast('Não foi possível tocar alguns áudios. Confira as permissões do navegador.','error');
+}
+function closeAudioDeviceMenu(){document.getElementById('sinalisAudioDeviceMenu')?.remove()}
+async function openAudioDeviceMenu(kind,anchor){
+ if(!navigator.mediaDevices?.enumerateDevices)return toast('Seu navegador não permite listar dispositivos de áudio.','error');
+ const rect=anchor.getBoundingClientRect();
+ let devices=[];
+ try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind===kind)}catch(err){return toast('Não foi possível listar os dispositivos: '+err.message,'error')}
+ closeAudioDeviceMenu();
+ const menu=document.createElement('div');menu.id='sinalisAudioDeviceMenu';menu.className='audio-device-popup';
+ const chosen=kind==='audioinput'?audioPrefs.input:audioPrefs.output;
+ const title=kind==='audioinput'?'Microfone de entrada':'Fone / saída de áudio';
+ const opts=[{deviceId:'',label:'Padrão do sistema'},...devices.filter(d=>d.deviceId&&d.deviceId!=='default').map((d,i)=>({deviceId:d.deviceId,label:d.label||(kind==='audioinput'?'Microfone ':'Fone ')+(i+1)}))];
+ const mk=(d)=>'<button class="audio-device-option '+(chosen===d.deviceId?'selected':'')+'" data-action="select-audio-device" data-kind="'+kind+'" data-device-id="'+E(d.deviceId)+'">'+(chosen===d.deviceId?I('check'):I(kind==='audioinput'?'mic':'headphones'))+'<span>'+E(d.label)+'</span></button>';
+ menu.innerHTML='<div class="audio-device-title">'+title+'</div><div class="audio-device-info">'+(kind==='audioinput'?'Escolha qual microfone será enviado aos participantes.':'Escolha onde você ouvirá os participantes da Call.')+'</div>'+opts.map(mk).join('')+(kind==='audiooutput'&&navigator.mediaDevices.selectAudioOutput?'<div class="audio-device-divider"></div><button class="audio-device-option" data-action="system-audio-output">'+I('settings')+'<span>Escolher outro dispositivo...</span></button>':'')+'<div class="audio-device-note">'+(kind==='audiooutput'&&typeof HTMLMediaElement!=='undefined'&&!('setSinkId' in HTMLMediaElement.prototype)?'Este navegador não permite escolher a saída diretamente. Use o dispositivo padrão do sistema.':'O dispositivo precisa estar conectado e autorizado no navegador.')+'</div>';
+ document.body.append(menu);
+ const h=menu.getBoundingClientRect().height;
+ menu.style.left=Math.min(Math.max(8,rect.left-12),window.innerWidth-menu.offsetWidth-8)+'px';
+ menu.style.top=Math.max(8,rect.bottom+h+10<window.innerHeight?rect.bottom+7:rect.top-h-7)+'px';
+}
+async function selectAudioDevice(kind,id){
+ if(kind==='audioinput'){
+  if(!state.call.room || window.SINALIS_OFFLINE){audioPrefs.input=id;localStorage.setItem('sinalis-input-device',id);closeAudioDeviceMenu();toast('Microfone selecionado. Será usado ao entrar na Call.','success');return}
+  const old=state.call.stream;
+  const constraints={echoCancellation:true,noiseSuppression:true,autoGainControl:true,...(id?{deviceId:{exact:id}}:{})};
+  let fresh;
+  try{fresh=await navigator.mediaDevices.getUserMedia({audio:constraints})}catch(e){return toast('Não foi possível abrir esse microfone: '+e.message,'error')}
+  const track=fresh.getAudioTracks()[0];track.enabled=!state.call.muted;
+  try{
+   for(const pc of state.call.peers.values()){
+    const sender=pc.getSenders().find(s=>s.track?.kind==='audio');
+    if(sender)await sender.replaceTrack(track); else if(pc.signalingState!=='closed')pc.addTrack(track,fresh);
+   }
+  }catch(e){fresh.getTracks().forEach(t=>t.stop());return toast('Não foi possível trocar o microfone: '+e.message,'error')}
+  state.call.stream=fresh;old?.getTracks().forEach(t=>t.stop());
+  audioPrefs.input=id;localStorage.setItem('sinalis-input-device',id);closeAudioDeviceMenu();toast('Microfone alterado!','success');
+  await renegotiate();
+ }else{
+  if(typeof HTMLMediaElement==='undefined'||!('setSinkId' in HTMLMediaElement.prototype))return toast('Este navegador não permite trocar a saída do áudio aqui. Selecione o fone pelo sistema.','error');
+  try{await Promise.all($$('[data-peer-audio]').map(a=>a.setSinkId(id||'')))}catch(e){return toast('O navegador não permitiu usar esse fone: '+e.message,'error')}
+  audioPrefs.output=id;localStorage.setItem('sinalis-output-device',id);closeAudioDeviceMenu();syncRemoteAudio();await resumeRemoteAudio();toast('Saída de áudio selecionada!','success');
+ }
+}
+async function selectSystemAudioOutput(){
+ if(!navigator.mediaDevices?.selectAudioOutput)return toast('Seu navegador não possui seleção de saída de áudio.','error');
+ try{const d=await navigator.mediaDevices.selectAudioOutput();await selectAudioDevice('audiooutput',d.deviceId)}catch(e){if(e.name!=='NotAllowedError')toast('Não foi possível selecionar o fone: '+e.message,'error')}
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#sinalisAudioDeviceMenu')&&!e.target.closest('[data-action="audio-device-menu"]'))closeAudioDeviceMenu()},true);
+
 function renderCallDock(){
  const el=$('#callDock');const c=state.call;
  if(!c.room){el.classList.add('hidden');el.innerHTML='';$$('[data-peer-audio]').forEach(a=>a.remove());return}
- if(currentChannel()?.type==='voice'&&state.view==='chat'){el.classList.add('hidden');el.innerHTML='';$$('[data-peer-audio]').forEach(a=>{a.muted=c.deaf});return}
+ if(currentChannel()?.type==='voice'&&state.view==='chat'){el.classList.add('hidden');el.innerHTML='';syncRemoteAudio();return}
  for(const [id,pc] of c.peers)if(!state.voice.some(v=>v.room===c.room&&v.id===id)){pc.close();c.peers.delete(id);c.remote.delete(id)}
  const ch=state.channels.find(x=>x.id===c.room);
  el.classList.remove('hidden');el.classList.toggle('minimized',!!c.minimized);
  const people=voicePeople(c.room);
- el.innerHTML=`<div class="call-top"><div><b style="color:#ffb5c2">✦ ${window.SINALIS_OFFLINE?'Prévia da Call':'Chamada conectada'}</b><div class="subtle">${E(ch?.name||'Call')} • ${people.length} participante(s)</div></div><button class="icon-btn" data-action="minimize-call" title="Minimizar">${c.minimized?I('external'):'−'}</button></div><div class="call-participants">${people.map(v=>{const u=person(v.id);return `<div class="call-peer call-peer-pretty"><span class="call-peer-pic">${avatar(u,66)}</span><strong>${E(u.displayName)}</strong><small>${v.muted?'🔇 Mic desligado':'🎙️ Na Call'}</small></div>`}).join('')}${Array.from(c.remote.entries()).filter(([id,stream])=>stream.getVideoTracks().length).map(([id])=>`<div class="video-tile"><video autoplay playsinline muted data-remote-video="${E(id)}"></video><small>${E(person(id).displayName)}</small></div>`).join('')}${c.camera||c.screen?`<div class="video-tile"><video autoplay playsinline muted data-local-preview></video><small>Você • prévia</small></div>`:''}</div>${window.SINALIS_OFFLINE?'<p class="call-demo-note">Demonstração local: compartilhar tela e botões visuais funcionam aqui; áudio entre pessoas só na versão com servidor.</p>':''}<div class="call-controls call-controls-a4"><div class="call-control-group"><button class="call-control-btn ${c.muted?'selected-red':''}" data-action="toggle-mute" title="Mutar microfone">${I(c.muted?'mic-off':'mic')}</button><button class="call-control-btn control-caret" title="Mais opções do microfone">${I('arrow')}</button><button class="call-control-btn ${c.screen?'selected-red':''}" data-action="toggle-screen" title="Compartilhar tela">${I('monitor')}</button></div><div class="call-control-group"><button class="call-control-btn ${c.deaf?'selected-purple deafened':''}" data-action="toggle-deaf" title="Desligar o áudio que você ouve">${I('headphones')}</button><button class="call-control-btn" data-action="minimize-call" title="Mais opções">${I('more')}</button></div><button class="call-end-btn" data-action="leave-voice" title="Sair da Call">${I('log')}</button></div>`;
+ el.innerHTML=`<div class="call-top"><div><b style="color:#ffb5c2">✦ ${window.SINALIS_OFFLINE?'Prévia da Call':'Chamada conectada'}</b><div class="subtle">${E(ch?.name||'Call')} • ${people.length} participante(s)</div></div><button class="icon-btn" data-action="minimize-call" title="Minimizar">${c.minimized?I('external'):'−'}</button></div><div class="call-participants">${people.map(v=>{const u=person(v.id);return `<div class="call-peer call-peer-pretty"><span class="call-peer-pic">${avatar(u,66)}</span><strong>${E(u.displayName)}</strong><small>${v.muted?'🔇 Mic desligado':'🎙️ Na Call'}</small></div>`}).join('')}${Array.from(c.remote.entries()).filter(([id,stream])=>stream.getVideoTracks().length).map(([id])=>`<div class="video-tile"><video autoplay playsinline muted data-remote-video="${E(id)}"></video><small>${E(person(id).displayName)}</small></div>`).join('')}${c.camera||c.screen?`<div class="video-tile"><video autoplay playsinline muted data-local-preview></video><small>Você • prévia</small></div>`:''}</div>${window.SINALIS_OFFLINE?'<p class="call-demo-note">Demonstração local: compartilhar tela e botões visuais funcionam aqui; áudio entre pessoas só na versão com servidor.</p>':''}<div class="call-controls call-controls-a4"><div class="call-control-group"><button class="call-control-btn ${c.muted?'selected-red':''}" data-action="toggle-mute" title="Mutar microfone">${I(c.muted?'mic-off':'mic')}</button>${deviceArrow('audioinput')}<button class="call-control-btn ${c.screen?'selected-red':''}" data-action="toggle-screen" title="Compartilhar tela">${I('monitor')}</button></div><div class="call-control-group"><button class="call-control-btn ${c.deaf?'selected-purple deafened':''}" data-action="toggle-deaf" title="Desligar o áudio que você ouve">${I('headphones')}</button>${deviceArrow('audiooutput')}<button class="call-control-btn" data-action="minimize-call" title="Mais opções">${I('more')}</button></div><button class="call-end-btn" data-action="leave-voice" title="Sair da Call">${I('log')}</button></div>`;
  for(const [id,stream] of c.remote){
   const v=el.querySelector(`[data-remote-video="${id}"]`);
   if(v){v.srcObject=stream;v.play().catch(()=>{})}
-  let audio=document.querySelector(`[data-peer-audio="${id}"]`);
-  if(!audio){audio=document.createElement('audio');audio.dataset.peerAudio=id;audio.autoplay=true;document.body.append(audio)}
-  audio.srcObject=stream;audio.muted=c.deaf;audio.play().catch(()=>{});
+
  }
- $$('[data-peer-audio]').forEach(a=>{if(!c.remote.has(a.dataset.peerAudio))a.remove()});
+ syncRemoteAudio();
  const preview=el.querySelector('[data-local-preview]');if(preview){preview.srcObject=c.screen||c.camera;preview.play().catch(()=>{})}
 }
 async function updateCallState(changes){try{if(state.call.room)await api('/api/voice/state','POST',changes)}catch{}}
 async function renegotiate(){for(const [id,pc] of state.call.peers){if(pc.signalingState==='stable'){try{await pc.setLocalDescription(await pc.createOffer());await signal(id,'offer',pc.localDescription)}catch(err){console.warn('Renegociação:',err)}}}}
 async function toggleMute(){const c=state.call;c.muted=!c.muted;c.stream?.getAudioTracks().forEach(t=>t.enabled=!c.muted);const meVoice=state.voice.find(v=>v.id===state.me.id&&v.room===c.room);if(meVoice)meVoice.muted=c.muted;await updateCallState({muted:c.muted});renderSelf();renderCallDock();if(currentChannel()?.type==='voice'&&state.view==='chat')renderMain();}
-async function toggleDeaf(){const c=state.call;c.deaf=!c.deaf;$$('[data-peer-audio]').forEach(a=>a.muted=c.deaf);await updateCallState({deaf:c.deaf});renderSelf();renderCallDock();}
+async function toggleDeaf(){const c=state.call;c.deaf=!c.deaf;$$('[data-peer-audio]').forEach(a=>a.muted=c.deaf);if(!c.deaf){syncRemoteAudio();resumeRemoteAudio().catch(console.error)}await updateCallState({deaf:c.deaf});renderSelf();renderCallDock();}
 async function toggleCamera(){const c=state.call;if(!c.room)return;
  if(c.camera){const tracks=c.camera.getTracks();for(const pc of c.peers.values())for(const sender of pc.getSenders())if(tracks.includes(sender.track))pc.removeTrack(sender);tracks.forEach(t=>t.stop());c.camera=null;}
  else{try{c.camera=await navigator.mediaDevices.getUserMedia({video:true,audio:false});for(const pc of c.peers.values())for(const track of c.camera.getTracks())pc.addTrack(track,c.camera);}catch(err){return toast('Não foi possível abrir a câmera: '+err.message,'error')}}
@@ -918,6 +1020,9 @@ async function action(a,el){
  case 'leave-voice':await leaveVoice();break;
  case 'call-show':state.call.minimized=false;renderCallDock();break;
  case 'minimize-call':state.call.minimized=!state.call.minimized;renderCallDock();break;
+ case 'audio-device-menu':await openAudioDeviceMenu(el.dataset.kind,el);break;
+ case 'select-audio-device':await selectAudioDevice(el.dataset.kind,el.dataset.deviceId||'');break;
+ case 'system-audio-output':await selectSystemAudioOutput();break;
  case 'toggle-mute':await toggleMute();break;
  case 'toggle-deaf':await toggleDeaf();break;
  case 'toggle-camera':await toggleCamera();break;
@@ -993,11 +1098,18 @@ document.addEventListener('keydown',e=>{
  if(e.key==='Escape'){closeModal();hidePopup();$('#channelSidebar').classList.remove('mobile-open')}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();if(state.token)searchModal()}
 });
+navigator.mediaDevices?.addEventListener?.('devicechange',async()=>{
+ try{const d=await navigator.mediaDevices.enumerateDevices();
+ if(audioPrefs.output&&!d.some(x=>x.kind==='audiooutput'&&x.deviceId===audioPrefs.output)){audioPrefs.output='';localStorage.removeItem('sinalis-output-device');syncRemoteAudio();toast('Fone desconectado. Saída padrão restaurada.')}
+ if(audioPrefs.input&&!d.some(x=>x.kind==='audioinput'&&x.deviceId===audioPrefs.input)){audioPrefs.input='';localStorage.removeItem('sinalis-input-device');toast('Microfone desconectado. Escolha outro pela setinha.','error')}
+ }catch{}
+});
 window.addEventListener('beforeunload',()=>{state.source?.close();state.call.stream?.getTracks().forEach(t=>t.stop())});
 async function init(){injectIcons();
  if(location.protocol==='file:'&&!window.SINALIS_OFFLINE){$('#authError').textContent='O site deve ser iniciado com INICIAR_SITE.bat (não abrindo este HTML diretamente).';return;}
  try{await api('/api/health')}catch{$('#authError').textContent='Não foi possível conectar ao servidor do Sinalis.';return;}
- if(state.token){try{await bootstrap(false);const prev=localStorage.getItem(key('channel'));if(prev&&state.channels.some(c=>c.id===prev))await selectChannel(prev);await connectEvents();   const c=new URLSearchParams(location.search).get('invite');if(c){const j=await api('/api/servers/join','POST',{code:c});state.server={id:j.serverId};state.channelId=null;await bootstrap(false);history.replaceState(null,'',location.pathname)}
+ if(state.token){try{await bootstrap(false);const prev=localStorage.getItem(key('channel'));if(prev&&state.channels.some(c=>c.id===prev))await selectChannel(prev);await connectEvents();
+   const c=new URLSearchParams(location.search).get('invite');if(c){const j=await api('/api/servers/join','POST',{code:c});state.server={id:j.serverId};state.channelId=null;await bootstrap(false);history.replaceState(null,'',location.pathname)}
   }catch(err){state.token='';localStorage.removeItem('sinalis-token');$('#app').classList.add('hidden');$('#auth').classList.remove('hidden');}}
 }
 init();
