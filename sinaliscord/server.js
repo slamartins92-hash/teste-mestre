@@ -347,7 +347,7 @@ async function api(req,res,p,params){
       const out=await pool.query("SELECT id,title,mime_type AS \"mimeType\",created_at AS \"createdAt\",status,size_bytes AS \"sizeBytes\",duration_ms AS \"durationMs\" FROM sinalis_session_recordings WHERE server_id=$1 ORDER BY created_at DESC LIMIT 80",[sid]);
       return tokenize(res,{recordings:out.rows});
     }
-    const match=p.match(/^\/api\/session-recordings\/([0-9a-f-]{36})\/(chunk|finish|file)$/);
+    const match=p.match(/^\/api\/session-recordings\/([0-9a-f-]{36})\/(chunk|finish|file|abort)$/);
     if(!match)return error(res,'Recurso de gravação desconhecido.',404);
     const id=match[1],action=match[2];
     const found=await pool.query("SELECT id,server_id,created_by,title,mime_type,status,size_bytes,duration_ms,created_at FROM sinalis_session_recordings WHERE id=$1",[id]);
@@ -377,6 +377,12 @@ async function api(req,res,p,params){
         await client.query('COMMIT');
       }catch(e){await client.query('ROLLBACK');throw e}finally{client.release()}
       return tokenize(res,{ok:true,index,sizeBytes:binary.length});
+    }
+    if(action==='abort'&&method==='POST'){
+      if(rec.created_by!==u.id)return error(res,'Sem permissão.',403);
+      await pool.query("UPDATE sinalis_session_recordings SET status='incompleta' WHERE id=$1 AND status='recording'",[id]);
+      if(activeSessionRecording?.id===id){activeSessionRecording=null;broadcastSessionRecording(rec.server_id,false,null)}
+      return tokenize(res,{ok:true});
     }
     if(action==='finish'&&method==='POST'){
       if(rec.created_by!==u.id)return error(res,'Apenas quem iniciou pode concluir esta gravação.',403);
