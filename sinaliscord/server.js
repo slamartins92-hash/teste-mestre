@@ -319,6 +319,32 @@ async function api(req,res,p,params){
 
   // Rolagens de RPG: valores gerados pelo servidor, persistidos em #dados e transmitidos
   // para cada membro conectado, independentemente do canal que estiver aberto.
+  if(p==='/api/moderation'&&method==='POST'){
+    const b=await body(req);
+    const server=db.servers.find(s=>s.id===b.serverId&&s.members?.[u.id]==='mestre');
+    if(!server)return error(res,'Somente o Mestre pode controlar permissões.',403);
+    const target=db.users.find(x=>x.id===b.targetId);
+    if(!target||!server.members[target.id]||server.members[target.id]==='mestre')return error(res,'Só é possível alterar permissões de Players.',403);
+    if(typeof b.enabled!=='boolean')return error(res,'Estado inválido.');
+    if(b.kind==='dice'){
+      server.diceBlockedUsers ||= {};
+      if(b.enabled)server.diceBlockedUsers[target.id]=true;
+      else delete server.diceBlockedUsers[target.id];
+    }else if(b.kind==='voice'){
+      server.voiceMutedUsers ||= {};
+      if(b.enabled)server.voiceMutedUsers[target.id]=true;
+      else delete server.voiceMutedUsers[target.id];
+      const v=voices.get(target.id);
+      if(v&&db.channels.some(c=>c.id===v.room&&c.serverId===server.id)){
+        v.serverMuted=!!b.enabled;
+        if(b.enabled)v.muted=true;
+        voiceState();
+      }
+    }else return error(res,'Controle desconhecido.',400);
+    await persistImmediate();
+    broadcast('moderation',{serverId:server.id,targetId:target.id,kind:b.kind,enabled:b.enabled},Object.keys(server.members));
+    return tokenize(res,{ok:true,targetId:target.id,kind:b.kind,enabled:b.enabled});
+  }
   if(p==='/api/dice/roll'&&method==='POST'){
     const b=await body(req);
     const allowed=[4,6,8,10,12,20,100];
