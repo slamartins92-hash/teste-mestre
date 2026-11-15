@@ -41,7 +41,12 @@ async function initialize(){
   if(usePg){
     await pool.query('CREATE TABLE IF NOT EXISTS sinalis_state (id INTEGER PRIMARY KEY, data JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT NOW())');
     const r=await pool.query('SELECT data FROM sinalis_state WHERE id=1');
-    db=r.rows.length ? r.rows[0].data : {users:[],servers:[],channels:[],messages:[],files:{}};
+    if(r.rows.length)db=r.rows[0].data;
+    else {
+      // Only migrate a local file when it is still present; never wipe the database.
+      try{db=JSON.parse(fs.readFileSync(DB_FILE,'utf8'))}
+      catch{db={users:[],servers:[],channels:[],messages:[],files:{}}}
+    }
   }else{
     try{db=JSON.parse(fs.readFileSync(DB_FILE,'utf8'))}catch{db={users:[],servers:[],channels:[],messages:[],files:{}}}
   }
@@ -84,7 +89,7 @@ async function initialize(){
 }
 function persistImmediate(){
   const data=JSON.stringify(db);
-  if(!usePg){fs.writeFileSync(DB_FILE,data);return Promise.resolve()}
+  if(!usePg){const tempFile=DB_FILE+'.tmp';fs.writeFileSync(tempFile,data);fs.renameSync(tempFile,DB_FILE);return Promise.resolve()}
   // Serialize DB writes to avoid out-of-order snapshots overwriting a newer state.
   writeQueue=writeQueue.catch(e=>console.error('Persistência anterior falhou:',e)).then(()=>
     pool.query('INSERT INTO sinalis_state (id,data,updated_at) VALUES (1,$1::jsonb,NOW()) ON CONFLICT (id) DO UPDATE SET data=EXCLUDED.data,updated_at=NOW()', [data])
@@ -177,7 +182,7 @@ function serveFile(req,res,pathname){
 }
 async function api(req,res,p,params){
   const method=req.method;
-  if(p==='/api/health')return tokenize(res,{ok:true,service:'Sinalis'});
+  if(p==='/api/health')return tokenize(res,{ok:true,service:'Sinalis',storage:usePg?'postgres':'temporary'});
   if(p==='/api/register'&&method==='POST')return error(res,'Cadastro fechado nesta versão beta. Entre com uma conta criada pelo Mestre.',403);
   if(false&&p==='/api/register'&&method==='POST'){
     const b=await body(req);const username=String(b.username||'').trim();const password=b.password;
@@ -259,7 +264,7 @@ async function api(req,res,p,params){
       roll,attachment:null,replyTo:null,createdAt:roll.createdAt,updatedAt:null,reactions:{},pinned:false};
     db.messages.push(message);
     if(db.messages.length>30000)db.messages=db.messages.slice(-30000);
-    save();
+    await persistImmediate();
     notifyMessage('message',message);
     broadcast('dice-roll',{roll,message},Object.keys(server.members));
     return tokenize(res,{roll,message},201);
@@ -280,7 +285,7 @@ async function api(req,res,p,params){
     } else if(!b.dmUserId||!db.users.some(x=>x.id===b.dmUserId&&x.id!==u.id))return error(res,'Conversa privada inválida.');
     const attachment=b.attachment&&typeof b.attachment.url==='string'&&/^\/uploads\/[\w.-]+$/.test(b.attachment.url)?{url:b.attachment.url,name:String(b.attachment.name||'arquivo').slice(0,100),type:String(b.attachment.type||'')}:null;
     const m={id:uid(),channelId:channel?.id||null,dmUserId:channel?null:b.dmUserId,senderId:u.id,content,attachment,replyTo:b.replyTo||null,createdAt:now(),updatedAt:null,reactions:{},pinned:false};
-    db.messages.push(m);if(db.messages.length>30000)db.messages=db.messages.slice(-30000);save();notifyMessage('message',m);return tokenize(res,{message:m},201);
+    db.messages.push(m);if(db.messages.length>30000)db.messages=db.messages.slice(-30000);await persistImmediate();notifyMessage('message',m);return tokenize(res,{message:m},201);
   }
   const msgRoute=p.match(/^\/api\/messages\/([\w-]+)$/);
   if(msgRoute&&(method==='PATCH'||method==='DELETE')){
@@ -316,7 +321,7 @@ async function api(req,res,p,params){
     if(b.status!==undefined){if(!['online','idle','dnd','invisible'].includes(b.status))return error(res,'Status inválido.');u.status=b.status;}
     if(b.bio!==undefined)u.bio=String(b.bio).slice(0,130);
     if(b.avatar!==undefined){if(b.avatar && !/^\/uploads\/[\w.-]+$/.test(b.avatar))return error(res,'Imagem inválida.');u.avatar=b.avatar;}
-    save();broadcast('user-update',publicUser(u));return tokenize(res,{me:publicUser(u)});
+    await persistImmediate();broadcast('user-update',publicUser(u));return tokenize(res,{me:publicUser(u)});
   }
   if(p==='/api/upload'&&method==='POST'){
     const b=await body(req);const name=safeFilename(b.name);const type=String(b.type||'application/octet-stream').slice(0,100);
@@ -325,7 +330,7 @@ async function api(req,res,p,params){
     const bytes=Buffer.from(match[2],'base64');if(!bytes.length||bytes.length>5*1024*1024)return error(res,'Tamanho máximo de arquivo: 5 MB.');
     const allowExt=['.png','.jpg','.jpeg','.webp','.gif','.pdf','.txt','.mp3','.ogg','.mp4','.webm','.zip','.json'];
     const ext=path.extname(name).toLowerCase();if(!allowExt.includes(ext))return error(res,'Formato não permitido. Use PNG, JPG, GIF, PDF, TXT, áudio, vídeo, ZIP ou JSON.');
-    const file=uid()+ext;db.files[file]={data:bytes.toString('base64'),createdAt:now()};save();
+    const file=uid()+ext;db.files[file]={data:bytes.toString('base64'),createdAt:now()};await persistImmediate();
     if(!usePg)fs.writeFileSync(path.join(UPLOADS,file),bytes);
     return tokenize(res,{attachment:{url:'/uploads/'+file,name,type,size:bytes.length}});
   }
