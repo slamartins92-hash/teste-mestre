@@ -25,13 +25,14 @@ function starterChannels(serverId) {
     ['geral','text','CANAIS DE TEXTO',false,'Converse com todos'],
     ['midias','text','CANAIS DE TEXTO',false,'Compartilhe fotos, vídeos e arquivos'],
     ['dados','text','CANAIS DE TEXTO',false,'Resultados de dados do RPG'],
-    ['Call','voice','CANAIS DE VOZ',false,'Converse por voz com a comunidade']
+    ['Call','voice','CANAIS DE VOZ',false,'Converse por voz com a comunidade'],
+    ['Sessão','voice','CANAIS DE VOZ',false,'Sessão de RPG • lugares fixos e transmissão abaixo do Mestre']
   ].map(([name,type,category,readOnly,description],position) =>
     ({id:uid(),serverId,name,type,category,readOnly,description,restricted:false,position}));
 }
 function initialDb() {
   const id = uid();
-  return {users:[],servers:[{id,name:'sinais escarlate',description:'Geral • Mídias • Dados • Call',ownerId:null,inviteCode:invite(),createdAt:now()}], channels:starterChannels(id), messages:[]};
+  return {users:[],servers:[{id,name:'sinais escarlate',description:'Geral • Mídias • Dados • Call • Sessão',ownerId:null,inviteCode:invite(),createdAt:now()}], channels:starterChannels(id), messages:[]};
 }
 let db;
 const usePg=!!process.env.DATABASE_URL;
@@ -148,14 +149,15 @@ async function initialize(){
     const main=sv.name.toLowerCase()==='sinais escarlate';
     if(!main)continue;
     for(const id of Object.keys(sv.members))sv.members[id]=id===sv.ownerId?'mestre':'player';
-    const wanted=[['geral','text'],['midias','text'],['dados','text'],['Call','voice']];
+    const wanted=[['geral','text'],['midias','text'],['dados','text'],['Call','voice'],['Sessão','voice']];
     const standard=starterChannels(sv.id);
     const keep=wanted.map(([name,type],position)=>{
       const prev=db.channels.find(c=>c.serverId===sv.id&&c.name.toLowerCase()===name.toLowerCase()&&c.type===type);
       const standardCh=standard[position];
       return prev?{...prev,category:standardCh.category,description:standardCh.description,position,readOnly:false,restricted:false}:standardCh;
     });
-    db.channels=db.channels.filter(c=>c.serverId!==sv.id).concat(keep);
+    // Mantém todos os canais e IDs históricos; só atualiza os canais fixos e inclui Sessão.
+    db.channels=db.channels.filter(c=>c.serverId!==sv.id||!wanted.some(([name,type])=>c.name.toLowerCase()===name.toLowerCase()&&c.type===type)).concat(keep);
   }
   await persistImmediate();
 }
@@ -452,7 +454,7 @@ async function api(req,res,p,params){
     if(b.description!==undefined)server.description=String(b.description).slice(0,100);
     if(b.resetInvite)server.inviteCode=invite();save();broadcast('server-update',{serverId:server.id},Object.keys(server.members));return tokenize(res,{ok:true});
   }
-  if(p==='/api/channels'&&method==='POST')return error(res,'Os canais fixos são #geral, #midias, #dados e Call.',403);
+  if(p==='/api/channels'&&method==='POST')return error(res,'Os canais fixos são #geral, #midias, #dados, Call e Sessão.',403);
   if(false&&p==='/api/channels'&&method==='POST'){
     const b=await body(req);const server=requireServer(res,u,b.serverId);if(!server)return;
     if(!manage(server.members[u.id]))return error(res,'Só fundador e administradores podem criar canais.',403);
