@@ -220,6 +220,20 @@
 .voice-screen-frame video{background:#120911;object-fit:contain;image-rendering:auto}
 @media(max-width:680px){.voice-chat-wrapper{padding:11px}.master-header-btn{font-size:0;padding:8px}.master-header-btn svg{width:18px;height:18px}.master-person{align-items:flex-start}}
 .voice-screen-retry{margin-left:10px;border-radius:9px;background:#612035;border:1px solid #a94f6e;color:#ffe0e8;padding:6px 9px;font-size:11px;cursor:pointer}.voice-screen-retry:hover{background:#85314c}
+
+/* V15.1: Chat da Call no canto direito, com o mesmo formulário de mensagem. */
+.voice-stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,320px);align-items:start;gap:18px;padding:22px 18px 34px;overflow:visible;text-align:center}
+.voice-stage-glow{grid-column:1/-1;grid-row:1;z-index:-1}
+.voice-main-column{grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:center;gap:22px;min-width:0;padding-top:7px}
+.voice-main-column .voice-people-grid,.voice-main-column .voice-screen-stage{max-width:100%}
+.voice-chat-wrapper{grid-column:2;grid-row:1;position:sticky;top:12px;align-self:start;width:100%;max-width:none;height:clamp(360px,calc(100vh - 205px),780px);max-height:calc(100vh - 160px);min-width:0;margin:0;display:flex;flex-direction:column;overflow:hidden}
+.voice-chat-messages{flex:1;min-height:0;max-height:none;overflow-y:auto;overflow-x:hidden}
+.voice-chat-wrapper #composeArea{display:block;margin-top:auto;padding:10px 0 0;width:100%;flex:0 0 auto;background:transparent;border:0}
+.voice-chat-wrapper #composeArea.hidden{display:none}
+.voice-chat-wrapper .message-form{width:100%;min-width:0}
+.voice-chat-wrapper #messageInput{min-width:0}
+.voice-chat-wrapper .composer-tool{display:none}
+@media(max-width:1030px){.voice-stage{grid-template-columns:minmax(0,1fr);gap:16px}.voice-chat-wrapper{grid-column:1;grid-row:2;position:static;max-height:none;height:380px}.voice-main-column{grid-row:1}}
 </style>
 <style id="sinalis-v4-fix">
 #authSubmit{position:relative;z-index:40;pointer-events:auto!important;min-height:48px;cursor:pointer!important}
@@ -650,6 +664,8 @@ function sendMediaInfo(){const c=state.call;if(!c.room)return;
 
 function renderMain(){
  const chat=$('#chatScroll');const compose=$('#composeArea');
+ // Preserve the same input form and event listeners when switching between chat and Call.
+ if(compose.closest('.voice-chat-wrapper'))chat.parentElement.append(compose);
  if(['home','explore','dms'].includes(state.view)){
   compose.classList.add('hidden');chat.innerHTML=renderPage();return;
  }
@@ -675,7 +691,9 @@ function renderMain(){
   }
   const stageCamera=cameraTiles.length?`<div class="voice-cameras-grid">${cameraTiles.join('')}</div>`:'';
   const stageShare=sharer?`<section class="voice-screen-stage" aria-label="Transmissão de ${E(sharer.user.displayName)}"><div class="voice-screen-live"><span class="voice-screen-live-dot"></span><strong>${E(sharer.user.displayName)}</strong> está compartilhando a tela <button class="voice-screen-retry" data-action="retry-screen" title="Retomar vídeo se ficar preto">↻ Retomar vídeo</button></div><div class="voice-screen-frame">${sharer.type==='local'?`<video autoplay playsinline muted data-stage-local-screen></video>`:`<video autoplay playsinline muted data-stage-remote-screen="${E(sharer.id)}"></video>`}</div></section>`:'';
-  chat.innerHTML=`<div class="voice-stage"><div class="voice-stage-glow"></div><div class="voice-stage-heading"><span class="voice-stage-symbol">${I('volume')}</span><p>CANAL DE VOZ</p><h1>✦ Call</h1><span>${sharer?'A transmissão aparece logo abaixo das fotos.':'Entre para conversar com o pessoal do sinais escarlate.'}</span></div><div class="voice-people-grid">${tiles||`<div class="voice-nobody">${I('users')}<span>Ainda não tem ninguém na Call.<br>Seja a primeira pessoa a entrar! :p</span></div>`}</div>${stageCamera}${stageShare}<div class="voice-stage-bottom">${!connected?`<button class="primary-btn voice-join-btn" data-action="join-voice" data-id="${E(ch.id)}">${I('volume')} Entrar na Call</button>`:inlineCallControls()}<p class="call-tip">${window.SINALIS_OFFLINE?'Demonstração local: a tela compartilhada aparece abaixo da foto; o áudio entre pessoas continua só na versão com servidor.':'Para falar com outras pessoas, permita o microfone. Ao compartilhar a tela, ela aparecerá abaixo das fotos.'}</p></div><section class="voice-chat-wrapper" aria-label="Chat da Call"><div class="voice-chat-head"><span>💬 Chat da Call</span><small>${state.messages.length} mensagens</small></div><div class="voice-chat-messages" id="voiceChatMessages">${state.messages.length?state.messages.map(renderMessage).join(''):'<p class="voice-chat-empty">Nenhuma mensagem ainda. Entre na Call e mande a primeira! :p</p>'}</div></section></div>`;
+  chat.innerHTML=`<div class="voice-stage"><div class="voice-stage-glow"></div><div class="voice-main-column"><div class="voice-stage-heading"><span class="voice-stage-symbol">${I('volume')}</span><p>CANAL DE VOZ</p><h1>✦ Call</h1><span>${sharer?'A transmissão aparece logo abaixo das fotos.':'Entre para conversar com o pessoal do sinais escarlate.'}</span></div><div class="voice-people-grid">${tiles||`<div class="voice-nobody">${I('users')}<span>Ainda não tem ninguém na Call.<br>Seja a primeira pessoa a entrar! :p</span></div>`}</div>${stageCamera}${stageShare}<div class="voice-stage-bottom">${!connected?`<button class="primary-btn voice-join-btn" data-action="join-voice" data-id="${E(ch.id)}">${I('volume')} Entrar na Call</button>`:inlineCallControls()}<p class="call-tip">${window.SINALIS_OFFLINE?'Demonstração local: a tela compartilhada aparece abaixo da foto; o áudio entre pessoas continua só na versão com servidor.':'Para falar com outras pessoas, permita o microfone. Ao compartilhar a tela, ela aparecerá abaixo das fotos.'}</p></div></div><section class="voice-chat-wrapper" aria-label="Chat da Call"><div class="voice-chat-head"><span>💬 Chat da Call</span><small>${state.messages.length} mensagens</small></div><div class="voice-chat-messages" id="voiceChatMessages">${state.messages.length?state.messages.map(renderMessage).join(''):'<p class="voice-chat-empty">Nenhuma mensagem ainda. Entre na Call e mande a primeira! :p</p>'}</div></section></div>`;
+  const callPanel=chat.querySelector(".voice-chat-wrapper");
+  if(callPanel)callPanel.append(compose);
   injectIcons(chat);syncVoiceStageMedia();
   return;
  }
