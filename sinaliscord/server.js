@@ -37,15 +37,87 @@ let db;
 const usePg=!!process.env.DATABASE_URL;
 const pool=usePg ? new (require('pg').Pool)({connectionString:process.env.DATABASE_URL,ssl:process.env.SINALIS_DB_SSL==='require'?{rejectUnauthorized:false}:undefined}) : null;
 let writeQueue=Promise.resolve();
+
+/* Migração segura: recuperar o estado anterior ANTES de aceitar tráfego no novo deploy.
+   Se a leitura do servidor antigo falhar, interrompe o boot para preservar a versão antiga. */
+async function migrateLiveIntoDatabase(hashes) {
+  const credsString=process.env.SINALIS_MIGRATION_CREDENTIALS;
+  if(!credsString)throw new Error('Banco novo vazio e credenciais de migração ausentes; cancelando deploy para proteger histórico.');
+  const creds=JSON.parse(credsString);
+  const origin=(process.env.SINALIS_MIGRATION_ORIGIN||'https://sinaliscord.onrender.com').replace(/\/$/,'');
+  const req=async (p,token,bodyData)=>{
+    const response=await fetch(origin+p,{
+      method:bodyData?'POST':'GET',
+      headers:{...(bodyData?{'Content-Type':'application/json'}:{}),...(token?{Authorization:'Bearer '+token}:{})},
+      body:bodyData?JSON.stringify(bodyData):undefined,
+      signal:AbortSignal.timeout(25000)
+    });
+    if(!response.ok)throw new Error('Falha ao preservar '+p.split('?')[0]+': HTTP '+response.status);
+    return response.json();
+  };
+  const users=['Pingu','Knight','Manuela','Mafe','Luska'];
+  const tokens={};
+  for(const username of users){
+    if(!creds[username])throw new Error('Credenciais de migração incompletas: '+username);
+    const answer=await req('/api/login',null,{username,password:creds[username]});
+    tokens[username]=answer.token;
+  }
+  const base=await req('/api/bootstrap',tokens.Pingu);
+  if(!base?.server?.id||!base.members?.length)throw new Error('Estado anterior inválido; protegendo histórico.');
+  const sv=base.server;
+  const members={};
+  const originalUsers=base.members.map(m=>{
+    const hash=hashes[m.username]||hashes[users.find(k=>k.toLowerCase()===m.username.toLowerCase())];
+    if(!hash)throw new Error('Hash de conta ausente: '+m.username);
+    members[m.id]=m.role==='mestre'?'mestre':'player';
+    return {id:m.id,username:m.username,displayName:m.displayName,avatar:m.avatar||'',status:m.status||'online',bio:m.bio||'',password:hash,joinedAt:m.joinedAt||now(),sessions:[]};
+  });
+  if(originalUsers.length<5)throw new Error('Membros insuficientes durante a cópia; cancelando migração.');
+  const mainServer={id:sv.id,name:sv.name,description:sv.description,ownerId:sv.ownerId||originalUsers.find(x=>x.username==='Pingu')?.id,inviteCode:sv.inviteCode||invite(),createdAt:sv.createdAt||now(),members};
+  const messages=new Map();
+  const channels=base.channels||[];
+  for(const ch of channels.filter(x=>x.type==='text')){
+    const out=await req('/api/messages?channel='+encodeURIComponent(ch.id),tokens.Pingu);
+    for(const m of out.messages||[]) messages.set(m.id,m);
+  }
+  // Exportar também DMs visíveis para cada uma das cinco contas preexistentes.
+  for(const username of users){
+    const token=tokens[username];
+    const me=originalUsers.find(x=>x.username.toLowerCase()===username.toLowerCase());
+    if(!me)continue;
+    for(const other of originalUsers){
+      if(other.id===me.id)continue;
+      const out=await req('/api/messages?dm='+encodeURIComponent(other.id),token);
+      for(const m of out.messages||[]) messages.set(m.id,m);
+    }
+  }
+  const minMessages=Number(process.env.SINALIS_MIGRATION_MIN_MESSAGES||33);
+  if(messages.size<minMessages)throw new Error('A migração retornou apenas '+messages.size+' mensagens (mínimo '+minMessages+'); mantendo a versão anterior.');
+  const toDownload=new Set();
+  for(const u of originalUsers)if(u.avatar?.startsWith('/uploads/'))toDownload.add(u.avatar);
+  for(const m of messages.values())if(m.attachment?.url?.startsWith('/uploads/'))toDownload.add(m.attachment.url);
+  const files={};
+  for(const filePath of toDownload){
+    const resp=await fetch(origin+filePath,{signal:AbortSignal.timeout(30000)});
+    if(!resp.ok)throw new Error('Não foi possível salvar um avatar/anexo: HTTP '+resp.status);
+    const bytes=Buffer.from(await resp.arrayBuffer());
+    if(bytes.length>9*1024*1024)throw new Error('Arquivo muito grande para migração segura.');
+    files[path.basename(filePath)]={data:bytes.toString('base64'),createdAt:now()};
+  }
+  const restored={users:originalUsers,servers:[mainServer],channels,messages:Array.from(messages.values()),files};
+  console.log('Histórico recuperado:',restored.users.length,'contas,',restored.messages.length,'mensagens,',Object.keys(files).length,'arquivos.');
+  return restored;
+}
+
 async function initialize(){
   if(usePg){
     await pool.query('CREATE TABLE IF NOT EXISTS sinalis_state (id INTEGER PRIMARY KEY, data JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT NOW())');
     const r=await pool.query('SELECT data FROM sinalis_state WHERE id=1');
     if(r.rows.length)db=r.rows[0].data;
     else {
-      // Only migrate a local file when it is still present; never wipe the database.
+      // Nunca inicializar um banco vazio sem copiar o histórico da versão existente.
       try{db=JSON.parse(fs.readFileSync(DB_FILE,'utf8'))}
-      catch{db={users:[],servers:[],channels:[],messages:[],files:{}}}
+      catch{db=await migrateLiveIntoDatabase(JSON.parse(process.env.SINALIS_SEED_HASHES||'{}'))}
     }
   }else{
     try{db=JSON.parse(fs.readFileSync(DB_FILE,'utf8'))}catch{db={users:[],servers:[],channels:[],messages:[],files:{}}}
