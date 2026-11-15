@@ -219,6 +219,7 @@
 .master-person-actions .master-neutral{background:#30222b;color:#ead1da}
 .voice-screen-frame video{background:#120911;object-fit:contain;image-rendering:auto}
 @media(max-width:680px){.voice-chat-wrapper{padding:11px}.master-header-btn{font-size:0;padding:8px}.master-header-btn svg{width:18px;height:18px}.master-person{align-items:flex-start}}
+.voice-screen-retry{margin-left:10px;border-radius:9px;background:#612035;border:1px solid #a94f6e;color:#ffe0e8;padding:6px 9px;font-size:11px;cursor:pointer}.voice-screen-retry:hover{background:#85314c}
 </style>
 <style id="sinalis-v4-fix">
 #authSubmit{position:relative;z-index:40;pointer-events:auto!important;min-height:48px;cursor:pointer!important}
@@ -446,7 +447,7 @@
   const dice=setupDice(roll),reduced=!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   active={roll,reduced};
   const root=document.createElement('div');root.id='sinalisDiceOverlay';root.className='sinalis-dice-overlay dice-v12-world';
-  root.innerHTML=`<div class="dice-v12-scrim"></div><div class="dice-v12-content"><div class="dice-v12-top"><div class="dice-v12-eyebrow">✦ SINAIS ESCARLATE · ROLAGEM ✦</div><div class="dice-v12-player"><strong>${escapeHtml(roll.displayName||'Jogador')}</strong><span>lançou ${dice.length}d${roll.sides}</span></div></div><button type="button" class="dice-v12-close" aria-label="Fechar animação" title="Fechar">×</button><canvas class="dice-v12-canvas" role="img" aria-label="Dados tridimensionais caindo e girando até revelar o resultado"></canvas><div class="dice-v12-summary" aria-live="polite"><span class="dice-v12-values">${dice.map(d=>`<span>${escapeHtml(d.value)}</span>`).join('')}</span><span class="dice-v12-total"><small>TOTAL</small><b>${escapeHtml(roll.total)}</b></span><small class="dice-v12-log">Registrado em #dados</small></div></div>`;
+  root.innerHTML=`<div class="dice-v12-scrim"></div><div class="dice-v12-content"><div class="dice-v12-top"><div class="dice-v12-eyebrow">✦ SINAIS ESCARLATE · ROLAGEM ✦</div><div class="dice-v12-player"><strong>${escapeHtml(roll.displayName||'Jogador')}</strong><span>lançou ${roll.count}d${roll.sides}</span></div></div><button type="button" class="dice-v12-close" aria-label="Fechar animação" title="Fechar">×</button><canvas class="dice-v12-canvas" role="img" aria-label="Dados tridimensionais caindo e girando até revelar o resultado"></canvas><div class="dice-v12-summary" aria-live="polite"><span class="dice-v12-values">${dice.map(d=>`<span>${escapeHtml(d.value)}</span>`).join('')}</span><span class="dice-v12-total"><small>TOTAL</small><b>${escapeHtml(roll.total)}</b></span><small class="dice-v12-log">${roll.count>18?'Mostrando 18 de '+roll.count+' dados · ':''}Registrado em #dados</small></div></div>`;
   document.body.append(root);
   root.querySelector('.dice-v12-close').addEventListener('click',dismiss);
   const started=performance.now();
@@ -663,7 +664,7 @@ function renderMain(){
      ? (()=>{const x=participants.map(v=>({v,u:person(v.id)})).find(x=>x.v.sharing && state.call.remote.get(x.v.id)?.getVideoTracks().length);return {type:'remote',id:x.v.id,user:x.u};})()
      : null;
   const tiles=participants.map(v=>{
-   const u=person(v.id);return `<button class="voice-person" data-action="open-member" data-id="${E(u.id)}" title="Ver perfil de ${E(u.displayName)}"><span class="voice-person-pic">${avatar(u,96)}<span class="voice-person-indicator">${v.muted?'🔇':'🎙️'}</span></span><strong>${E(u.displayName)}</strong><small>${v.muted?'Microfone desligado':'Conectado à Call'}</small></button>`;
+   const u=person(v.id);return `<button class="voice-person" data-action="open-member" data-id="${E(u.id)}" title="Ver perfil de ${E(u.displayName)}"><span class="voice-person-pic">${avatar(u,96)}<span class="voice-person-indicator">${v.muted?'🔇':'🎙️'}</span></span><strong>${E(u.displayName)}</strong><small>${v.serverMuted?'Silenciado pelo Mestre':v.muted?'Microfone desligado':'Conectado à Call'}</small></button>`;
   }).join('');
   const cameraTiles=[];
   if(connected&&state.call.camera)cameraTiles.push(`<div class="voice-camera-tile"><video autoplay muted playsinline data-stage-local-camera></video><span>${E(state.me.displayName)} • câmera</span></div>`);
@@ -673,7 +674,7 @@ function renderMain(){
    cameraTiles.push(`<div class="voice-camera-tile"><video autoplay muted playsinline data-stage-remote-camera="${E(member.id)}"></video><span>${E(person(member.id).displayName)} • câmera</span></div>`);
   }
   const stageCamera=cameraTiles.length?`<div class="voice-cameras-grid">${cameraTiles.join('')}</div>`:'';
-  const stageShare=sharer?`<section class="voice-screen-stage" aria-label="Transmissão de ${E(sharer.user.displayName)}"><div class="voice-screen-live"><span class="voice-screen-live-dot"></span><strong>${E(sharer.user.displayName)}</strong> está compartilhando a tela</div><div class="voice-screen-frame">${sharer.type==='local'?`<video autoplay playsinline muted data-stage-local-screen></video>`:`<video autoplay playsinline muted data-stage-remote-screen="${E(sharer.id)}"></video>`}</div></section>`:'';
+  const stageShare=sharer?`<section class="voice-screen-stage" aria-label="Transmissão de ${E(sharer.user.displayName)}"><div class="voice-screen-live"><span class="voice-screen-live-dot"></span><strong>${E(sharer.user.displayName)}</strong> está compartilhando a tela <button class="voice-screen-retry" data-action="retry-screen" title="Retomar vídeo se ficar preto">↻ Retomar vídeo</button></div><div class="voice-screen-frame">${sharer.type==='local'?`<video autoplay playsinline muted data-stage-local-screen></video>`:`<video autoplay playsinline muted data-stage-remote-screen="${E(sharer.id)}"></video>`}</div></section>`:'';
   chat.innerHTML=`<div class="voice-stage"><div class="voice-stage-glow"></div><div class="voice-stage-heading"><span class="voice-stage-symbol">${I('volume')}</span><p>CANAL DE VOZ</p><h1>✦ Call</h1><span>${sharer?'A transmissão aparece logo abaixo das fotos.':'Entre para conversar com o pessoal do sinais escarlate.'}</span></div><div class="voice-people-grid">${tiles||`<div class="voice-nobody">${I('users')}<span>Ainda não tem ninguém na Call.<br>Seja a primeira pessoa a entrar! :p</span></div>`}</div>${stageCamera}${stageShare}<div class="voice-stage-bottom">${!connected?`<button class="primary-btn voice-join-btn" data-action="join-voice" data-id="${E(ch.id)}">${I('volume')} Entrar na Call</button>`:inlineCallControls()}<p class="call-tip">${window.SINALIS_OFFLINE?'Demonstração local: a tela compartilhada aparece abaixo da foto; o áudio entre pessoas continua só na versão com servidor.':'Para falar com outras pessoas, permita o microfone. Ao compartilhar a tela, ela aparecerá abaixo das fotos.'}</p></div><section class="voice-chat-wrapper" aria-label="Chat da Call"><div class="voice-chat-head"><span>💬 Chat da Call</span><small>${state.messages.length} mensagens</small></div><div class="voice-chat-messages" id="voiceChatMessages">${state.messages.length?state.messages.map(renderMessage).join(''):'<p class="voice-chat-empty">Nenhuma mensagem ainda. Entre na Call e mande a primeira! :p</p>'}</div></section></div>`;
   injectIcons(chat);syncVoiceStageMedia();
   return;
@@ -896,8 +897,7 @@ async function connectEvents(){
   const {ticket}=await api('/api/event-ticket','POST');if(state.source)state.source.close();
   const source=new EventSource('/api/events?ticket='+encodeURIComponent(ticket));state.source=source;
   source.addEventListener('presence',e=>{state.online=JSON.parse(e.data).online;renderMembers();renderSelf();injectIcons($('#selfBar'));if(['home','dms'].includes(state.view))renderMain();});
-  source.addEventListener('dice-roll',e=>{try{onDiceRollEvent(JSON.parse(e.data))}catch(err){console.error(err)}});
-  source.addEventListener('moderation',e=>{
+  source.addEventListener('dice-roll',e=>{try{onDiceRollEvent(JSON.parse(e.data))}catch(err){console.error(err)}});  source.addEventListener('moderation',e=>{
    const p=JSON.parse(e.data);if(p.serverId!==state.server?.id)return;
    const key=p.kind==='dice'?'diceBlockedUsers':'voiceMutedUsers';state.permissions[key] ||= {};
    if(p.enabled)state.permissions[key][p.targetId]=true;else delete state.permissions[key][p.targetId];
@@ -997,7 +997,8 @@ async function createPeer(id,offer=false){
   pc.onconnectionstatechange=()=>{if(pc.connectionState==='closed'){clearTimeout(pc._voiceRetry);state.call.peers.delete(id);state.call.remote.delete(id);syncRemoteAudio();renderCallDock()}};
  }
  if(offer){await pc.setLocalDescription(await pc.createOffer());await signal(id,'offer',pc.localDescription);}
- signal(id,'media-info',{screen:state.call.screen?.getVideoTracks()[0]?.id||null,camera:state.call.camera?.getVideoTracks()[0]?.id||null}).catch(()=>{}); return pc;
+ signal(id,'media-info',{screen:state.call.screen?.getVideoTracks()[0]?.id||null,camera:state.call.camera?.getVideoTracks()[0]?.id||null}).catch(()=>{});
+ return pc;
 }
 const signal=(to,kind,data)=>api('/api/voice/signal','POST',{to,kind,data});
 async function onSignal({from,kind,data}){
@@ -1196,6 +1197,7 @@ async function action(a,el){
  case 'toggle-deaf':await toggleDeaf();break;
  case 'toggle-camera':await toggleCamera();break;
  case 'toggle-screen':await toggleScreen();break;
+ case 'retry-screen':renderMain();syncVoiceStageMedia();toast('Prévia de vídeo atualizada.','success');break;
  case 'show-help':modal(`<h2>Como usar o Sinalis</h2><p>Seu espaço escarlate para conversas com outras pessoas.</p><div class="subheading">COMECE POR AQUI</div><p>Crie sua conta, escolha o canal <b>#geral</b> e envie sua primeira mensagem. Clique nos nomes para abrir o perfil e iniciar uma DM.</p><p><b>Arquivos:</b> use o botão + no chat. <b>Voz:</b> clique em um canal de voz e permita o microfone. <b>Convites:</b> abra o menu do servidor.</p><p>Pingu é o <b>Mestre</b>. Os demais integrantes são <b>Players</b>.</p><p class="subtle">Para usar com amigos em outros computadores, hospede este servidor Node.js em uma URL HTTPS. A câmera, o microfone e o compartilhamento de tela dependem das permissões do navegador e das condições da rede.</p>`);break;
  }
 }
