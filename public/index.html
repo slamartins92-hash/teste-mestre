@@ -2500,8 +2500,12 @@
       const wifiBaseName = 'DESCONHECIDA';
       const wifiSecret = 'trindade555';
       const virtualWifiStorageKey = 'arg_wifi_trindade555_connected';
+      const startWifiOffline = new URLSearchParams(location.search).get('wifi') === 'off';
       let virtualWifiConnected = false;
-      try { virtualWifiConnected = localStorage.getItem(virtualWifiStorageKey) === 'true'; } catch (_) {}
+      try {
+        if (startWifiOffline) localStorage.removeItem(virtualWifiStorageKey);
+        else virtualWifiConnected = localStorage.getItem(virtualWifiStorageKey) === 'true';
+      } catch (_) {}
       let wifiNotifyTimer = null;
       let wifiConnectTimer = null;
       let wifiAutoConnectTimer = null;
