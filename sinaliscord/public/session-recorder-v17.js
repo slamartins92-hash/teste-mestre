@@ -269,6 +269,6 @@ document.addEventListener('click',event=>{
  event.preventDefault();event.stopPropagation();
  doAction(btn).catch(e=>{console.error(e);talk(e.message,true)});
 },true);
-setInterval(()=>{if(inSession())decorateSession();if(ui.recording&&state.call.room!==sessionChannel()?.id)stopRecording()},7000);
+setInterval(()=>{if(inSession())decorateSession();if(ui.recording&&(!inSession()||state.call.room!==sessionChannel()?.id))stopRecording()},7000);
 window.SinalisV17={decorateSession,bindEvents,showGallery,refreshStatus,stopRecording};
 })();
