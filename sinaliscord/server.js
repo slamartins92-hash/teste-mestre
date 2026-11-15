@@ -113,6 +113,11 @@ async function migrateLiveIntoDatabase(hashes) {
 async function initialize(){
   if(usePg){
     await pool.query('CREATE TABLE IF NOT EXISTS sinalis_state (id INTEGER PRIMARY KEY, data JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT NOW())');
+
+    // Gravações protegidas em tabelas próprias. Nunca apaga nem reescreve mensagens, contas ou fotos.
+    await pool.query("CREATE TABLE IF NOT EXISTS sinalis_session_recordings (id TEXT PRIMARY KEY, server_id TEXT NOT NULL, created_by TEXT NOT NULL, title TEXT NOT NULL, mime_type TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), status TEXT NOT NULL DEFAULT 'recording', size_bytes BIGINT NOT NULL DEFAULT 0, duration_ms BIGINT NOT NULL DEFAULT 0)");
+    await pool.query("CREATE TABLE IF NOT EXISTS sinalis_session_recording_chunks (recording_id TEXT NOT NULL REFERENCES sinalis_session_recordings(id) ON DELETE CASCADE, part_no INT NOT NULL, payload BYTEA NOT NULL, PRIMARY KEY(recording_id,part_no))");
+    await pool.query("UPDATE sinalis_session_recordings SET status='incompleta' WHERE status='recording'");
     const r=await pool.query('SELECT data FROM sinalis_state WHERE id=1');
     if(r.rows.length)db=r.rows[0].data;
     else {
@@ -205,6 +210,11 @@ function session(req){
 }
 const streams=new Map(); // user ID -> Set of SSE connections
 const voices=new Map(); // user ID -> {room, muted, deaf, video, sharing}
+let activeSessionRecording=null; // apenas sinalização ao vivo; os vídeos ficam no PostgreSQL
+function broadcastSessionRecording(serverId,active,by){
+ const sv=db.servers.find(x=>x.id===serverId);
+ if(sv)broadcast('session-recording',{serverId,active,by:active?by:null},Object.keys(sv.members||{}));
+}
 function sendTo(userId,type,payload){
   for(const res of streams.get(userId)||[]) try{res.write(`event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`);}catch{}
 }
@@ -213,7 +223,14 @@ function online(){return Array.from(streams.keys()).filter(id=>streams.get(id)?.
 function presence(){broadcast('presence',{online:online()});}
 function voicePeople(room){return Array.from(voices.entries()).filter(([_,v])=>v.room===room).map(([id,v])=>({id,...v}));}
 function voiceState(){broadcast('voice',{people:Array.from(voices.entries()).map(([id,v])=>({id,...v}))});}
-function leaveVoice(id){if(voices.delete(id))voiceState();}
+function leaveVoice(id){
+ if(activeSessionRecording&&activeSessionRecording.ownerId===id){
+  const rec=activeSessionRecording;activeSessionRecording=null;
+  broadcastSessionRecording(rec.serverId,false,null);
+  if(usePg)pool.query("UPDATE sinalis_session_recordings SET status='incompleta' WHERE id=$1 AND status='recording'",[rec.id]).catch(e=>console.error('Interrupção de gravação:',e.message));
+ }
+ if(voices.delete(id))voiceState();
+}
 function requireServer(res,user,id){
   const s=db.servers.find(s=>s.id===id);
   if(!s||!s.members[user.id]){error(res,'Você não participa deste servidor.',403);return null;}
@@ -298,6 +315,93 @@ async function api(req,res,p,params){
   }
   if(!s)return error(res,'Faça login para continuar.',401);
   const u=s.user;
+  // Gravações da Sessão: somente o Mestre pode criar, listar ou baixar.
+  // Os participantes recebem apenas o status "está gravando" para transparência.
+  if(p==='/api/session-recordings/status'&&method==='GET'){
+    const sid=params.get('serverId');
+    const sv=db.servers.find(x=>x.id===sid&&x.members?.[u.id]);
+    if(!sv)return error(res,'Servidor indisponível.',403);
+    const active=!!activeSessionRecording&&activeSessionRecording.serverId===sid;
+    return tokenize(res,{active,by:active?activeSessionRecording.ownerId:null});
+  }
+  if(p.startsWith('/api/session-recordings')){
+    if(!usePg)return error(res,'Gravações precisam do banco de dados permanente.',503);
+    const isMaster=sid=>db.servers.some(x=>x.id===sid&&x.members?.[u.id]==='mestre');
+    if(p==='/api/session-recordings/start'&&method==='POST'){
+      const b=await body(req,10000),sid=String(b.serverId||'');
+      if(!isMaster(sid))return error(res,'Somente o Mestre pode gravar a Sessão.',403);
+      const room=db.channels.find(x=>x.serverId===sid&&x.type==='voice'&&x.name.toLowerCase()==='sessão');
+      if(!room||voices.get(u.id)?.room!==room.id)return error(res,'Entre na call Sessão antes de gravar.',403);
+      if(activeSessionRecording)return error(res,'Já existe uma gravação em andamento.',409);
+      const mime=String(b.mimeType||'video/webm').slice(0,80);
+      if(!/^(video\/webm|video\/mp4)(;.*)?$/i.test(mime))return error(res,'Formato de gravação não suportado.',415);
+      const id=uid(),title='Sessão '+new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'});
+      await pool.query("INSERT INTO sinalis_session_recordings(id,server_id,created_by,title,mime_type) VALUES($1,$2,$3,$4,$5)",[id,sid,u.id,title,mime]);
+      activeSessionRecording={id,serverId:sid,ownerId:u.id,startedAt:Date.now()};
+      broadcastSessionRecording(sid,true,u.id);
+      return tokenize(res,{id,title},201);
+    }
+    if(p==='/api/session-recordings'&&method==='GET'){
+      const sid=String(params.get('serverId')||'');
+      if(!isMaster(sid))return error(res,'Apenas o Mestre pode acessar as gravações.',403);
+      const out=await pool.query("SELECT id,title,mime_type AS \"mimeType\",created_at AS \"createdAt\",status,size_bytes AS \"sizeBytes\",duration_ms AS \"durationMs\" FROM sinalis_session_recordings WHERE server_id=$1 ORDER BY created_at DESC LIMIT 80",[sid]);
+      return tokenize(res,{recordings:out.rows});
+    }
+    const match=p.match(/^\/api\/session-recordings\/([0-9a-f-]{36})\/(chunk|finish|file)$/);
+    if(!match)return error(res,'Recurso de gravação desconhecido.',404);
+    const id=match[1],action=match[2];
+    const found=await pool.query("SELECT id,server_id,created_by,title,mime_type,status,size_bytes,duration_ms,created_at FROM sinalis_session_recordings WHERE id=$1",[id]);
+    const rec=found.rows[0];
+    if(!rec||!isMaster(rec.server_id))return error(res,'Gravação indisponível para esta conta.',403);
+    if(action==='chunk'&&method==='POST'){
+      if(!activeSessionRecording||activeSessionRecording.id!==id||activeSessionRecording.ownerId!==u.id)return error(res,'Gravação não está ativa.',409);
+      if(rec.status!=='recording')return error(res,'Gravação já encerrada.',409);
+      if(String(req.headers['content-type']||'').split(';')[0]!=='application/octet-stream')return error(res,'Envie blocos binários.',415);
+      const index=Number(params.get('index'));
+      if(!Number.isInteger(index)||index<0||index>3000)return error(res,'Ordem de bloco inválida.',400);
+      let total=0;const pieces=[];
+      for await(const item of req){total+=item.length;if(total>2500000){const e=new Error('Bloco ultrapassou 2,5 MB.');e.status=413;throw e;}pieces.push(item)}
+      if(!total)return error(res,'Bloco vazio.',400);
+      const binary=Buffer.concat(pieces);
+      const client=await pool.connect();
+      try{
+        await client.query('BEGIN');
+        const rows=await client.query('SELECT size_bytes,status FROM sinalis_session_recordings WHERE id=$1 FOR UPDATE',[id]);
+        const current=rows.rows[0];
+        if(!current||current.status!=='recording')throw Object.assign(new Error('Gravação encerrada.'),{status:409});
+        if(Number(current.size_bytes)+binary.length>200000000)throw Object.assign(new Error('Limite de 200 MB por gravação atingido. Finalize esta gravação.'),{status:413});
+        const last=await client.query('SELECT COALESCE(MAX(part_no),-1) AS last FROM sinalis_session_recording_chunks WHERE recording_id=$1',[id]);
+        if(index!==Number(last.rows[0].last)+1)throw Object.assign(new Error('Bloco fora de ordem.'),{status:409});
+        await client.query('INSERT INTO sinalis_session_recording_chunks(recording_id,part_no,payload) VALUES($1,$2,$3)',[id,index,binary]);
+        await client.query('UPDATE sinalis_session_recordings SET size_bytes=size_bytes+$1 WHERE id=$2',[binary.length,id]);
+        await client.query('COMMIT');
+      }catch(e){await client.query('ROLLBACK');throw e}finally{client.release()}
+      return tokenize(res,{ok:true,index,sizeBytes:binary.length});
+    }
+    if(action==='finish'&&method==='POST'){
+      if(rec.created_by!==u.id)return error(res,'Apenas quem iniciou pode concluir esta gravação.',403);
+      const b=await body(req,10000);
+      const duration=Math.max(0,Math.min(Number(b.durationMs)||0,24*60*60*1000));
+      const total=await pool.query('SELECT COUNT(*)::int AS chunks FROM sinalis_session_recording_chunks WHERE recording_id=$1',[id]);
+      if(!total.rows[0].chunks)return error(res,'Nenhum trecho de vídeo foi recebido.',400);
+      await pool.query("UPDATE sinalis_session_recordings SET status='salva',duration_ms=$2 WHERE id=$1 AND status IN ('recording','incompleta')",[id,duration]);
+      if(activeSessionRecording?.id===id){activeSessionRecording=null;broadcastSessionRecording(rec.server_id,false,null)}
+      return tokenize(res,{ok:true,id});
+    }
+    if(action==='file'&&method==='GET'){
+      if(Number(rec.size_bytes)<1)return error(res,'Esta gravação não tem vídeo disponível.',404);
+      res.writeHead(200,{'Content-Type':rec.mime_type||'video/webm','Content-Length':String(rec.size_bytes),'Cache-Control':'private,no-store','X-Content-Type-Options':'nosniff','Content-Disposition':'attachment; filename="sessao-'+id+((rec.mime_type||'').startsWith('video/mp4')?'.mp4"':'.webm"')});
+      // Transmite por partes para não carregar um vídeo grande inteiro na memória do Render.
+      let i=0;
+      while(!res.destroyed){
+        const chunk=await pool.query('SELECT payload FROM sinalis_session_recording_chunks WHERE recording_id=$1 AND part_no=$2',[id,i++]);
+        if(!chunk.rows.length)break;
+        if(!res.write(chunk.rows[0].payload))await new Promise(resolve=>res.once('drain',resolve));
+      }
+      if(!res.writableEnded)res.end();return;
+    }
+    return error(res,'Método não permitido.',405);
+  }
   if(p==='/api/event-ticket'&&method==='POST'){
     const t=crypto.randomBytes(24).toString('hex');eventTickets.set(t,{userId:u.id,exp:Date.now()+30000});
     return tokenize(res,{ticket:t});
