@@ -1438,7 +1438,6 @@
     #sinaiszap-extra-maria .sinaiszap-message { flex-shrink:0; }
     #sinaiszap-extra-maria .sinaiszap-chat-date { margin-top:9px; }
     #sinaiszap-extra-maria .sinaiszap-chat-date:first-child { margin-top:0; }
-.sinaiszap-mom-avatar{background:#4a293c!important;color:#ffd3dd!important;font-size:24px!important}
 </style>
   <link rel="stylesheet" href="/phase2.css?v=pulso-todos-141126" />
 </head>
@@ -1785,10 +1784,6 @@
                 </button>
               </header>
               <div class="sinaiszap-contact-list">
-                <button class="sinaiszap-blocked-contact" id="sinaiszap-mom-open" type="button" aria-label="Abrir conversa com Mãe">
-                  <span class="sinaiszap-blocked-avatar sinaiszap-mom-avatar" aria-hidden="true">♥</span>
-                  <span class="sinaiszap-blocked-name">Mãe ❤️<small>Conversa de 2025</small></span>
-                </button>
                 <button class="sinaiszap-blocked-contact" id="sinaiszap-contact-open" type="button" aria-label="Abrir conversa com Contato bloqueado">
                   <span class="sinaiszap-blocked-avatar" aria-hidden="true">?</span>
                   <span class="sinaiszap-blocked-name">Contato bloqueado</span>
@@ -1802,7 +1797,7 @@
                 </button>
                 <button class="sinaiszap-blocked-contact sinaiszap-extra-contact" type="button" data-contact-number="03" aria-label="Abrir Contato bloqueado 03">
                   <span class="sinaiszap-blocked-avatar" aria-hidden="true">?</span>
-                  <span class="sinaiszap-blocked-name">Contato bloqueado<small>Histórico indisponível</small></span>
+                  <span class="sinaiszap-blocked-name">Contato bloqueado<small>Mensagens de 2025 recuperadas</small></span>
                   <span class="sinaiszap-contact-id" aria-hidden="true">#03</span>
                   <svg class="sinaiszap-blocked-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="m6.3 6.3 11.4 11.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                 </button>
@@ -2300,11 +2295,11 @@
                 </div>
                 <div class="sinaiszap-chat-footer">Você não pode enviar mensagens para este contato.</div>
               </div>
-              <div class="sinaiszap-chat" id="sinaiszap-mom-chat" aria-label="Conversa de Kaio e Mãe" aria-hidden="true">
+              <div class="sinaiszap-chat" id="sinaiszap-mom-chat" aria-label="Conversa recuperada com a mãe de Kaio — contato bloqueado 03" aria-hidden="true">
                 <header class="sinaiszap-chat-head">
                   <button class="sinaiszap-chat-back" id="sinaiszap-mom-back" type="button" aria-label="Voltar aos contatos">‹</button>
-                  <span class="sinaiszap-blocked-avatar sinaiszap-mom-avatar" aria-hidden="true">♥</span>
-                  <span class="sinaiszap-chat-identity"><strong>Mãe ❤️</strong><small>Mensagens recuperadas de 2025</small></span>
+                  <span class="sinaiszap-blocked-avatar" aria-hidden="true">?</span>
+                  <span class="sinaiszap-chat-identity"><strong>Contato bloqueado</strong><small>#03 · Mensagens recuperadas de 2025</small></span>
                 </header>
                 <div class="sinaiszap-chat-body" id="sinaiszap-mom-body">
                   <div class="sinaiszap-chat-date" aria-label="Julho de 2025"><strong>Julho de 2025</strong><small>Mensagens recuperadas</small></div>
@@ -2478,7 +2473,7 @@
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Te amo ❤️</div>
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>te amo tbm</div>
                 </div>
-                <div class="sinaiszap-chat-footer">Histórico recuperado · somente leitura</div>
+                <div class="sinaiszap-chat-footer">Você não pode enviar mensagens para este contato.</div>
               </div>
               <div class="sinaiszap-owner-profile" id="sinaiszap-owner-profile" aria-label="Foto de perfil do dono do celular" aria-hidden="true">
                 <header class="sinaiszap-owner-profile-header">
@@ -2739,7 +2734,6 @@
       const sinaiszapOwnerBack = document.getElementById('sinaiszap-owner-back');
       const sinaiszapChat = document.getElementById('sinaiszap-chat');
       const sinaiszapChatBack = document.getElementById('sinaiszap-chat-back');
-      const sinaiszapMomOpen = document.getElementById('sinaiszap-mom-open');
       const sinaiszapMomChat = document.getElementById('sinaiszap-mom-chat');
       const sinaiszapMomBack = document.getElementById('sinaiszap-mom-back');
       const sinaiszapMomBody = document.getElementById('sinaiszap-mom-body');
@@ -3713,14 +3707,6 @@
       showGalleryBrowser();
       resetGalleryFilters();
       sinaiszapOpen.addEventListener('click', startSinaiszapUpdate);
-      sinaiszapMomOpen.addEventListener('click', () => {
-        if (!virtualWifiConnected || !document.getElementById('sinaiszap-screen').classList.contains('is-open')) return;
-        closeSinaiszapOwnerProfile();
-        closeSinaiszapChat();
-        sinaiszapMomChat.classList.add('is-open');
-        sinaiszapMomChat.setAttribute('aria-hidden', 'false');
-        sinaiszapMomBody.scrollTop = sinaiszapMomBody.scrollHeight;
-      });
       sinaiszapMomBack.addEventListener('click', closeSinaiszapChat);
       sinaiszapContactOpen.addEventListener('click', () => {
         if (!virtualWifiConnected || !document.getElementById('sinaiszap-screen').classList.contains('is-open')) return;
@@ -3734,6 +3720,12 @@
           if (!virtualWifiConnected || !document.getElementById('sinaiszap-screen').classList.contains('is-open')) return;
           closeSinaiszapOwnerProfile();
           closeSinaiszapChat();
+          if (contact.dataset.contactNumber === '03') {
+            sinaiszapMomChat.classList.add('is-open');
+            sinaiszapMomChat.setAttribute('aria-hidden', 'false');
+            sinaiszapMomBody.scrollTop = 0;
+            return;
+          }
           const isMaria = contact.dataset.contactNumber === '02';
           sinaiszapExtraId.textContent = 'Bloqueado · contato #' + contact.dataset.contactNumber;
           sinaiszapExtraEmpty.hidden = isMaria;
