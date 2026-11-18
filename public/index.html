@@ -2412,7 +2412,7 @@
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>te amo</div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Também te amo, meu menino ❤️</div>
                   <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
-                  <div class="sinaiszap-chat-date" aria-label="Agosto de 2025"><strong>Agosto de 2025</strong><small>Mensagens recuperadas</small></div>
+                  <div class="sinaiszap-chat-date" id="sinaiszap-mom-august" aria-label="Agosto de 2025"><strong>Agosto de 2025</strong><small>Mensagens recuperadas</small></div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Kaio</div>
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>fala mãe</div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Achei uma foto sua com uns oito anos</div>
@@ -3723,7 +3723,15 @@
           if (contact.dataset.contactNumber === '03') {
             sinaiszapMomChat.classList.add('is-open');
             sinaiszapMomChat.setAttribute('aria-hidden', 'false');
+            // Começar pelo diálogo de agosto, que é a conversa principal da mãe.
+            // Mensagens de julho continuam acessíveis ao rolar para cima;
+            // a última conversa de 18/09 fica mais abaixo.
+            const august = document.getElementById('sinaiszap-mom-august');
             sinaiszapMomBody.scrollTop = 0;
+            if (august) {
+              sinaiszapMomBody.scrollTop = Math.max(0,
+                august.getBoundingClientRect().top - sinaiszapMomBody.getBoundingClientRect().top + sinaiszapMomBody.scrollTop);
+            }
             return;
           }
           const isMaria = contact.dataset.contactNumber === '02';
