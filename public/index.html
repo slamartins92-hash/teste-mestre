@@ -1438,12 +1438,6 @@
     #sinaiszap-extra-maria .sinaiszap-message { flex-shrink:0; }
     #sinaiszap-extra-maria .sinaiszap-chat-date { margin-top:9px; }
     #sinaiszap-extra-maria .sinaiszap-chat-date:first-child { margin-top:0; }
-    /* Contato bloqueado #03: agosto abre primeiro; julho e setembro ficam nas abas. */
-    .sinaiszap-mom-tabs{display:flex;gap:6px;align-items:center;padding:8px 10px;background:#14151b;border-bottom:1px solid rgba(255,255,255,.09);flex:none}
-    .sinaiszap-mom-tabs button{font-family:inherit;font-weight:600;font-size:11px;color:#b5b7c0;background:#22242e;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 6px;flex:1;min-width:0;cursor:pointer}
-    .sinaiszap-mom-tabs button.is-selected{color:#fff;background:#71384c;border-color:#b86b81}
-    .sinaiszap-mom-month{display:flex;flex-direction:column;gap:8px;align-items:stretch;width:100%;flex:none}
-    .sinaiszap-mom-month[hidden]{display:none!important}
 </style>
   <link rel="stylesheet" href="/phase2.css?v=pulso-todos-141126" />
 </head>
@@ -2307,14 +2301,8 @@
                   <span class="sinaiszap-blocked-avatar" aria-hidden="true">?</span>
                   <span class="sinaiszap-chat-identity"><strong>Contato bloqueado</strong><small>#03 · Mensagens recuperadas de 2025</small></span>
                 </header>
-                <nav class="sinaiszap-mom-tabs" id="sinaiszap-mom-tabs" aria-label="Conversas da mãe por mês">
-                  <button type="button" data-mom-month="jul" aria-pressed="false">Julho</button>
-                  <button type="button" data-mom-month="aug" aria-pressed="true" class="is-selected">Agosto</button>
-                  <button type="button" data-mom-month="sep" aria-pressed="false">18 de setembro</button>
-                </nav>
                 <div class="sinaiszap-chat-body" id="sinaiszap-mom-body">
-                  <section class="sinaiszap-mom-month" data-mom-section="jul" hidden>
-<div class="sinaiszap-chat-date" aria-label="Julho de 2025"><strong>Julho de 2025</strong><small>Mensagens recuperadas</small></div>
+                  <div class="sinaiszap-chat-date" aria-label="Julho de 2025"><strong>Julho de 2025</strong><small>Mensagens recuperadas</small></div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Kaio</div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Achei uma caixa com suas coisas aqui</div>
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>q coisas</div>
@@ -2424,9 +2412,7 @@
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>te amo</div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Também te amo, meu menino ❤️</div>
                   <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
-                  </section>
-                  <section class="sinaiszap-mom-month" data-mom-section="aug">
-<div class="sinaiszap-chat-date" id="sinaiszap-mom-august" aria-label="Agosto de 2025"><strong>Agosto de 2025</strong><small>Mensagens recuperadas</small></div>
+                  <div class="sinaiszap-chat-date" id="sinaiszap-mom-august" aria-label="Agosto de 2025"><strong>Agosto de 2025</strong><small>Mensagens recuperadas</small></div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Kaio</div>
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>fala mãe</div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Achei uma foto sua com uns oito anos</div>
@@ -2462,9 +2448,7 @@
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>vou cobrar isso</div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Vou esperar ❤️</div>
                   <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
-                  </section>
-                  <section class="sinaiszap-mom-month" data-mom-section="sep" hidden>
-<div class="sinaiszap-chat-date" aria-label="18 de setembro de 2025"><strong>18 de setembro de 2025</strong><small>Última conversa recuperada</small></div>
+                  <div class="sinaiszap-chat-date" aria-label="18 de setembro de 2025"><strong>18 de setembro de 2025</strong><small>Última conversa recuperada</small></div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Filho</div>
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>oi mãe</div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Arrumei suas coisas hoje</div>
@@ -2488,7 +2472,6 @@
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>tbm to com saudade mãe</div>
                   <div class="sinaiszap-message contact"><strong>Mãe</strong>Te amo ❤️</div>
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>te amo tbm</div>
-                  </section>
                 </div>
                 <div class="sinaiszap-chat-footer">Você não pode enviar mensagens para este contato.</div>
               </div>
@@ -3724,18 +3707,6 @@
       showGalleryBrowser();
       resetGalleryFilters();
       sinaiszapOpen.addEventListener('click', startSinaiszapUpdate);
-      const sinaiszapMomTabs = document.querySelectorAll('#sinaiszap-mom-tabs [data-mom-month]');
-      const sinaiszapMomMonths = document.querySelectorAll('#sinaiszap-mom-body [data-mom-section]');
-      const showSinaiszapMomMonth = (month) => {
-        sinaiszapMomMonths.forEach(section => { section.hidden = section.dataset.momSection !== month; });
-        sinaiszapMomTabs.forEach(tab => {
-          const active = tab.dataset.momMonth === month;
-          tab.classList.toggle('is-selected', active);
-          tab.setAttribute('aria-pressed', String(active));
-        });
-        sinaiszapMomBody.scrollTop = 0;
-      };
-      sinaiszapMomTabs.forEach(tab => tab.addEventListener('click', () => showSinaiszapMomMonth(tab.dataset.momMonth)));
       sinaiszapMomBack.addEventListener('click', closeSinaiszapChat);
       sinaiszapContactOpen.addEventListener('click', () => {
         if (!virtualWifiConnected || !document.getElementById('sinaiszap-screen').classList.contains('is-open')) return;
@@ -3752,7 +3723,7 @@
           if (contact.dataset.contactNumber === '03') {
             sinaiszapMomChat.classList.add('is-open');
             sinaiszapMomChat.setAttribute('aria-hidden', 'false');
-            showSinaiszapMomMonth('aug');
+            sinaiszapMomBody.scrollTop = 0;
             return;
           }
           const isMaria = contact.dataset.contactNumber === '02';
