@@ -1438,6 +1438,7 @@
     #sinaiszap-extra-maria .sinaiszap-message { flex-shrink:0; }
     #sinaiszap-extra-maria .sinaiszap-chat-date { margin-top:9px; }
     #sinaiszap-extra-maria .sinaiszap-chat-date:first-child { margin-top:0; }
+.sinaiszap-mom-avatar{background:#4a293c!important;color:#ffd3dd!important;font-size:24px!important}
 </style>
   <link rel="stylesheet" href="/phase2.css?v=pulso-todos-141126" />
 </head>
@@ -1784,6 +1785,10 @@
                 </button>
               </header>
               <div class="sinaiszap-contact-list">
+                <button class="sinaiszap-blocked-contact" id="sinaiszap-mom-open" type="button" aria-label="Abrir conversa com Mãe">
+                  <span class="sinaiszap-blocked-avatar sinaiszap-mom-avatar" aria-hidden="true">♥</span>
+                  <span class="sinaiszap-blocked-name">Mãe ❤️<small>Conversa de 2025</small></span>
+                </button>
                 <button class="sinaiszap-blocked-contact" id="sinaiszap-contact-open" type="button" aria-label="Abrir conversa com Contato bloqueado">
                   <span class="sinaiszap-blocked-avatar" aria-hidden="true">?</span>
                   <span class="sinaiszap-blocked-name">Contato bloqueado</span>
@@ -2072,7 +2077,7 @@
                   <div class="sinaiszap-message contact"><strong>Maria</strong>NÃO KKKKKKK</div>
                   <div class="sinaiszap-message owner"><strong>Kaio</strong>KKKKKKKKKKKKK</div>
                   <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
-                  <div class="sinaiszap-chat-date"><strong>Setembro de 2025</strong><small>Mensagens recuperadas</small></div>
+                  <div class="sinaiszap-chat-date" aria-label="19 de setembro de 2025"><strong>19 de setembro de 2025</strong><small>Dia do ataque ao laboratório</small></div>
                   <div class="sinaiszap-message contact"><strong>Maria</strong>KAIO</div>
                   <div class="sinaiszap-message contact"><strong>Maria</strong>RESPONDE AGORA</div>
                   <div class="sinaiszap-message contact"><strong>Maria</strong>EU SEI QUE VOCÊ TA VENDO</div>
@@ -2294,6 +2299,186 @@
                   <div class="sinaiszap-chat-event">Contato bloqueado</div>
                 </div>
                 <div class="sinaiszap-chat-footer">Você não pode enviar mensagens para este contato.</div>
+              </div>
+              <div class="sinaiszap-chat" id="sinaiszap-mom-chat" aria-label="Conversa de Kaio e Mãe" aria-hidden="true">
+                <header class="sinaiszap-chat-head">
+                  <button class="sinaiszap-chat-back" id="sinaiszap-mom-back" type="button" aria-label="Voltar aos contatos">‹</button>
+                  <span class="sinaiszap-blocked-avatar sinaiszap-mom-avatar" aria-hidden="true">♥</span>
+                  <span class="sinaiszap-chat-identity"><strong>Mãe ❤️</strong><small>Mensagens recuperadas de 2025</small></span>
+                </header>
+                <div class="sinaiszap-chat-body" id="sinaiszap-mom-body">
+                  <div class="sinaiszap-chat-date" aria-label="Julho de 2025"><strong>Julho de 2025</strong><small>Mensagens recuperadas</small></div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Kaio</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Achei uma caixa com suas coisas aqui</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>q coisas</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Seus desenhos antigos, umas fotos e um bonequinho sem cabeça</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>KKKKKKKKKKK</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>NÃO JOGA FORA</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>O boneco sem cabeça?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>PRINCIPALMENTE ELE</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Meu Deus, menino</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Você tem certeza que quer guardar isso?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>mãe esse boneco é uma relíquia</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Relíquia de quê?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>da minha infância</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Da sua infância ou do lixo?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>KKKKKKKKKKKKKK</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>maldade</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>KKKKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Também achei aquele desenho que você fez de mim</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>qual</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Aquele que eu tenho quatro braços</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>MEU DEUS</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>ISSO AINDA EXISTE?</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Existe</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Está na geladeira até hoje</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>MÃE EU FIZ ISSO COM 6 ANOS</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>E ficou lindo</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>EU TE DESENHEI COM QUATRO BRAÇOS</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Você disse que era porque eu conseguia fazer várias coisas ao mesmo tempo</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>KKKKKKKKKKKKKK</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>pior q faz sentido</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Está vendo? Sempre foi um menino inteligente</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>claramente</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Só não sabia guardar os brinquedos</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>precisava me humilhar assim?</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Precisava ❤️</div>
+                  <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
+                  <div class="sinaiszap-chat-date" aria-label="Julho de 2025"><strong>Julho de 2025</strong><small>Algumas horas depois</small></div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Filho</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>oi</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Você vem buscar suas coisas quando?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>passo aí domingo</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Você disse isso domingo passado</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>dessa vez eu vou</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Não precisa inventar desculpa, filho</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Só queria te ver um pouco</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>eu sei mãe</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>domingo eu apareço, prometo</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Tá bom. Vou fazer aquela comida que você gosta.</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>ai sim</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Mas vem pela sua mãe também, viu?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>KKKKKK vou sim</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vou acreditar.</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>nossa quanta confiança</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>KKKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Ah, e não precisa trazer nada.</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>nem sobremesa?</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Sobremesa pode.</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>SABIA</div>
+                  <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
+                  <div class="sinaiszap-chat-date" aria-label="13 de julho de 2025"><strong>13 de julho de 2025</strong><small>Domingo</small></div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Bom dia, filho</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Que horas você vem?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>bom diaaa</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>umas 13?</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Tudo bem</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vou deixar tudo pronto</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>mãe</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Oi?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>não precisa fazer um banquete não KKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Não estou fazendo banquete nenhum</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>sei</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Só arroz, carne, batata, salada e um bolinho</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>UM BOLINHO</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Você gosta</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>eu amo</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Então pronto</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>KKKKKKKKKKK</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>to saindo daqui daqui a pouco</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vem com cuidado</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>pode deixar</div>
+                  <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
+                  <div class="sinaiszap-chat-date" aria-label="13 de julho de 2025"><strong>13 de julho de 2025</strong><small>21:47</small></div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Chegou bem?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>chegueiii</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Que bom</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Gostei de você ter vindo hoje</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>eu tbm gostei</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>tava com saudade da sua comida KKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Só da comida?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>de vc tbm ne mãe 😭</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Ah, bom KKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Esqueceu uma coisa aqui</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>oq</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>O boneco sem cabeça</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>NÃO</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>EU ESQUECI O GUERREIRO</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>KKKKKKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vou guardar ele</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>cuida bem dele</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vou colocar na caixa</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>ele merece um lugar melhor</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Kaio, é um boneco sem cabeça.</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>E UM HERÓI</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>KKKKKKKKKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Boa noite, meu filho ❤️</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>boa noite mãe</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>te amo</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Também te amo, meu menino ❤️</div>
+                  <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
+                  <div class="sinaiszap-chat-date" aria-label="Agosto de 2025"><strong>Agosto de 2025</strong><small>Mensagens recuperadas</small></div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Kaio</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>fala mãe</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Achei uma foto sua com uns oito anos</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>la vem</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Você estava tentando cortar o próprio cabelo</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>NÃO</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>KKKKKKKK</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>APAGA ISSO</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vou mandar no grupo da família</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>MÃE PELO AMOR DE DEUS</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Brincadeira, filho</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>quase infartei</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>KKKKKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Falando sério agora</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Você anda muito ocupado?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>um pouco</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Faz tempo que não aparece por aqui</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>eu sei</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>desculpa</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Não precisa pedir desculpa</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Só não esquece que pode aparecer aqui quando quiser</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>eu sei mãe</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>E não precisa esperar um domingo</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>tá bom</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Seu quarto ainda está do mesmo jeito</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>ainda???</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Tirando que agora eu guardo umas caixas nele KKKKK</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>KKKKKKKKKK</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>meu quarto virou depósito</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Um depósito muito organizado</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>duvido</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Quando vier, pode conferir</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>vou cobrar isso</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vou esperar ❤️</div>
+                  <div class="sinaiszap-chat-missing">Algumas mensagens não puderam ser carregadas.</div>
+                  <div class="sinaiszap-chat-date" aria-label="18 de setembro de 2025"><strong>18 de setembro de 2025</strong><small>Última conversa recuperada</small></div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Filho</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>oi mãe</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Arrumei suas coisas hoje</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>vc jogou o guerreiro fora????</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Não KKKKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Ele está guardado junto com os desenhos</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>ufa</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Ainda não sei por que você gosta tanto daquele boneco</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>é uma lenda mãe</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Se você diz KKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vai conseguir vir aqui no fim de semana?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>acho q sim</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Acho que sim ou vai mesmo?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>KKKKKK vou tentar</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Tudo bem, só me avisa antes</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Vou fazer aquele bolo se você vier</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>aí vc me convenceu</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Preciso te subornar com comida agora?</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>sempre funcionou KKKKK</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Saudades de você, filho</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>tbm to com saudade mãe</div>
+                  <div class="sinaiszap-message contact"><strong>Mãe</strong>Te amo ❤️</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>te amo tbm</div>
+                </div>
+                <div class="sinaiszap-chat-footer">Histórico recuperado · somente leitura</div>
               </div>
               <div class="sinaiszap-owner-profile" id="sinaiszap-owner-profile" aria-label="Foto de perfil do dono do celular" aria-hidden="true">
                 <header class="sinaiszap-owner-profile-header">
@@ -2554,6 +2739,10 @@
       const sinaiszapOwnerBack = document.getElementById('sinaiszap-owner-back');
       const sinaiszapChat = document.getElementById('sinaiszap-chat');
       const sinaiszapChatBack = document.getElementById('sinaiszap-chat-back');
+      const sinaiszapMomOpen = document.getElementById('sinaiszap-mom-open');
+      const sinaiszapMomChat = document.getElementById('sinaiszap-mom-chat');
+      const sinaiszapMomBack = document.getElementById('sinaiszap-mom-back');
+      const sinaiszapMomBody = document.getElementById('sinaiszap-mom-body');
       const sinaiszapExtraChat = document.getElementById('sinaiszap-extra-chat');
       const sinaiszapExtraBack = document.getElementById('sinaiszap-extra-back');
       const sinaiszapExtraId = document.getElementById('sinaiszap-extra-id');
@@ -3057,6 +3246,8 @@
         sinaiszapChat.setAttribute('aria-hidden', 'true');
         sinaiszapExtraChat.classList.remove('is-open');
         sinaiszapExtraChat.setAttribute('aria-hidden', 'true');
+        sinaiszapMomChat.classList.remove('is-open');
+        sinaiszapMomChat.setAttribute('aria-hidden', 'true');
       };
       const closeSinaiszapOwnerProfile = () => {
         sinaiszapOwnerProfile.classList.remove('is-open');
@@ -3522,6 +3713,15 @@
       showGalleryBrowser();
       resetGalleryFilters();
       sinaiszapOpen.addEventListener('click', startSinaiszapUpdate);
+      sinaiszapMomOpen.addEventListener('click', () => {
+        if (!virtualWifiConnected || !document.getElementById('sinaiszap-screen').classList.contains('is-open')) return;
+        closeSinaiszapOwnerProfile();
+        closeSinaiszapChat();
+        sinaiszapMomChat.classList.add('is-open');
+        sinaiszapMomChat.setAttribute('aria-hidden', 'false');
+        sinaiszapMomBody.scrollTop = sinaiszapMomBody.scrollHeight;
+      });
+      sinaiszapMomBack.addEventListener('click', closeSinaiszapChat);
       sinaiszapContactOpen.addEventListener('click', () => {
         if (!virtualWifiConnected || !document.getElementById('sinaiszap-screen').classList.contains('is-open')) return;
         closeSinaiszapOwnerProfile();
@@ -3557,7 +3757,7 @@
       document.querySelectorAll('[data-mini-back]').forEach((btn) => btn.addEventListener('click', closeMiniApp));
       document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
-        if (sinaiszapChat.classList.contains('is-open') || sinaiszapExtraChat.classList.contains('is-open')) closeSinaiszapChat();
+        if (sinaiszapChat.classList.contains('is-open') || sinaiszapExtraChat.classList.contains('is-open') || sinaiszapMomChat.classList.contains('is-open')) closeSinaiszapChat();
         else if (miniScreens.some((view) => view.classList.contains('is-open'))) closeMiniApp();
       });
 
