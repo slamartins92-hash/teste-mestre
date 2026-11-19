@@ -2811,8 +2811,8 @@
       // Novos números com mensagens de voz curtas; o 37 mantém o áudio A2 original.
       const codeCallNumbers = new Map([
         ['1546', { code: 'B1', speech: 'Bê um.' }],
-        ['2205', { code: 'C2', speech: 'Cê dois.' }],
-        ['505', { code: 'B2 A2', speech: 'Bê dois.', appendOriginalA2: true }]
+        ['2205', { code: 'C2', speech: 'Cê.', appendOriginalTwo: true }],
+        ['505', { code: 'B2 A2', speech: 'Bê.', appendOriginalTwo: true, appendOriginalA2: true }]
       ]);
       const specialWords = ['vcs', 'acham', 'mesmo', 'q', 'eu', 'ia', 'ser', 'tão', 'previsivel', 'assim?'];
       const targetCallerName = 'MESTRE';
@@ -2857,6 +2857,7 @@
         clearTimeout(a2StartTimer);
         a2StartTimer = null;
         a2Audio.onended = null;
+        a2Audio.ontimeupdate = null;
         a2Audio.pause();
         try { a2Audio.currentTime = 0; } catch (_) {}
       };
@@ -2921,13 +2922,13 @@
         }
         return true;
       };
-      const playA2Clip = async () => {
+      const playA2Clip = async (startAt = 0) => {
         const ok = await prepareA2Audio();
         if (!ok) return false;
         stopA2Audio();
         a2Audio.playbackRate = 1;
         a2Audio.volume = 1;
-        try { a2Audio.currentTime = 0; } catch (_) {}
+        try { a2Audio.currentTime = startAt; } catch (_) {}
         const playback = a2Audio.play();
         if (playback && typeof playback.catch === 'function') {
           playback.catch(() => {});
@@ -3196,12 +3197,42 @@
             if (callActive && callMode === 'code') finishMysteryCall();
           }, 6000);
         };
+        const playTwoFrom37 = async () => {
+          if (!callActive || callMode !== 'code') return;
+          callStatus.textContent = '...';
+          // "Dois" é o trecho 0.19–0.63 s da gravação verdadeira "A2" do 37.
+          const played = await playA2Clip(0.19);
+          if (!callActive || callMode !== 'code') return;
+          if (!played) {
+            if (entry.appendOriginalA2) void playA2From37();
+            else finishCode();
+            return;
+          }
+          let advanced = false;
+          const finishTwo = () => {
+            if (advanced || !callActive || callMode !== 'code') return;
+            advanced = true;
+            clearTimeout(codeSpeechFallbackTimer);
+            codeSpeechFallbackTimer = null;
+            a2Audio.ontimeupdate = null;
+            a2Audio.onended = null;
+            a2Audio.pause();
+            if (entry.appendOriginalA2) void playA2From37();
+            else finishCode();
+          };
+          a2Audio.ontimeupdate = () => {
+            if (a2Audio.currentTime >= 0.63) finishTwo();
+          };
+          a2Audio.onended = finishTwo;
+          codeSpeechFallbackTimer = setTimeout(finishTwo, 4000);
+        };
         const afterSpeech = () => {
           if (!callActive || callMode !== 'code') return;
           clearTimeout(codeSpeechFallbackTimer);
           codeSpeechFallbackTimer = null;
           codeSpeech = null;
-          if (entry.appendOriginalA2) void playA2From37();
+          if (entry.appendOriginalTwo) void playTwoFrom37();
+          else if (entry.appendOriginalA2) void playA2From37();
           else finishCode();
         };
 
@@ -3211,7 +3242,8 @@
           const synth = window.speechSynthesis;
           if (!synth || typeof window.SpeechSynthesisUtterance !== 'function') {
             // Sem TTS no navegador, a parte gravada ainda toca quando disponível.
-            if (entry.appendOriginalA2) void playA2From37();
+            if (entry.appendOriginalTwo) void playTwoFrom37();
+            else if (entry.appendOriginalA2) void playA2From37();
             else {
               callStatus.textContent = entry.code;
               callFinishTimer = setTimeout(finishCode, 1200);
@@ -3240,13 +3272,15 @@
             codeSpeechFallbackTimer = setTimeout(() => {
               if (callActive && callMode === 'code' && codeSpeech === utterance) {
                 stopCodeSpeech();
-                if (entry.appendOriginalA2) void playA2From37();
+                if (entry.appendOriginalTwo) void playTwoFrom37();
+                else if (entry.appendOriginalA2) void playA2From37();
                 else finishCode();
               }
             }, 10000);
           } catch (_) {
             stopCodeSpeech();
-            if (entry.appendOriginalA2) void playA2From37();
+            if (entry.appendOriginalTwo) void playTwoFrom37();
+            else if (entry.appendOriginalA2) void playA2From37();
             else finishCode();
           }
         }, 1400); // Mesmo início do número 37.
