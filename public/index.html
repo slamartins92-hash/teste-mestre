@@ -1424,6 +1424,21 @@
     }
 
   
+
+    /* Último contato: mensagem que corrompe o celular. */
+    #sinaiszap-last-body { flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:9px; padding:17px 13px 22px; }
+    #sinaiszap-last-body[hidden] { display:none !important; }
+    .sinaiszap-last-photo { align-self:flex-end; width:min(72%,215px); border-radius:12px; display:block; box-shadow:0 4px 18px #0007; }
+    #sinaiszap-last-body .sinaiszap-message { flex-shrink:0; }
+    #device.last-corrupt .glass { animation:lastPhoneBend 1.7s ease-in-out both; transform-origin:50% 55%; }
+    #device.last-corrupt .glass::after { content:''; pointer-events:none; position:absolute; inset:0; z-index:80; background:repeating-linear-gradient(0deg,transparent 0 3px,#ff00003a 4px 6px); animation:lastGlitch 0.13s steps(2) infinite; }
+    #last-red-error { position:absolute; inset:0; z-index:120; display:none; background:#a00008; color:#fff; align-items:center; justify-content:center; flex-direction:column; text-align:center; padding:35px 25px; box-sizing:border-box; font-family:monospace; }
+    #last-red-error.show { display:flex; animation:lastRedReveal .65s steps(5) both; }
+    #last-red-error strong { font-size:clamp(17px,4.5vw,24px); line-height:1.45; text-shadow:2px 0 #ff7373,-2px 0 #3b0000; }
+    #last-red-error button { margin-top:28px; border:1px solid #ffb2b2; color:white; background:#570007; border-radius:8px; padding:12px 15px; font:inherit; cursor:pointer; }
+    @keyframes lastPhoneBend { 0% {transform:none;filter:none} 35% {transform:perspective(700px) rotateY(-9deg) skewY(3deg) scale(.98);filter:contrast(1.7)} 65% {transform:perspective(700px) rotateY(12deg) skewX(-6deg) scale(1.01);filter:hue-rotate(65deg)} 100% {transform:perspective(700px) rotateY(-6deg) skewY(5deg) scale(.98);filter:sepia(1) saturate(5) hue-rotate(315deg)} }
+    @keyframes lastGlitch { 0%{opacity:.25;transform:translateX(-5px)} 50%{opacity:.9;transform:translateX(6px)} 100%{opacity:.5;transform:translateY(4px)} }
+    @keyframes lastRedReveal { 0%{opacity:0;filter:brightness(4)} 35%{opacity:1;filter:brightness(1)} 60%{filter:brightness(3)} 100%{filter:none} }
     /* Conversa recuperada do Contato bloqueado #02 — Kaio e Maria. */
     .sinaiszap-extra-empty[hidden], .sinaiszap-chat-body[hidden] { display:none !important; }
     .sinaiszap-chat-missing {
@@ -1452,6 +1467,7 @@
       <div class="side-button volume-up" aria-hidden="true"></div>
       <div class="side-button volume-down" aria-hidden="true"></div>
       <button class="side-button power" type="button" id="power" aria-label="Desligar celular" aria-pressed="false" title="Ligar / desligar"></button>
+      <div id="last-red-error" role="alert" aria-live="assertive"><strong>CONVERSA PESADA DEMAIS<br>REINICIE O APARELHO</strong><button id="last-restart" type="button">REINICIAR APARELHO</button></div>
       <div class="glass">
         <div class="screen" id="screen">
           <section class="emergency-dialer" id="emergency-dialer" aria-label="Teclado de emergência" aria-hidden="true">
@@ -1830,9 +1846,9 @@
                   <span class="sinaiszap-contact-id" aria-hidden="true">#07</span>
                   <svg class="sinaiszap-blocked-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="m6.3 6.3 11.4 11.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                 </button>
-                <button class="sinaiszap-blocked-contact sinaiszap-extra-contact" type="button" data-contact-number="08" aria-label="Abrir Contato bloqueado 08">
+                <button class="sinaiszap-blocked-contact sinaiszap-extra-contact" type="button" data-contact-number="08" aria-label="Abrir último contato 08">
                   <span class="sinaiszap-blocked-avatar" aria-hidden="true">?</span>
-                  <span class="sinaiszap-blocked-name">Contato bloqueado<small>Histórico indisponível</small></span>
+                  <span class="sinaiszap-blocked-name">Contato bloqueado<small>2 mensagens recuperadas</small></span>
                   <span class="sinaiszap-contact-id" aria-hidden="true">#08</span>
                   <svg class="sinaiszap-blocked-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="m6.3 6.3 11.4 11.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                 </button>
@@ -1871,6 +1887,13 @@
                   <span class="sinaiszap-chat-identity"><strong>Contato bloqueado</strong><small id="sinaiszap-extra-id">Bloqueado</small></span>
                   <svg class="sinaiszap-blocked-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="m6.3 6.3 11.4 11.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
                 </header>
+
+                <div id="sinaiszap-last-body" hidden aria-label="Última conversa recuperada">
+                  <div class="sinaiszap-chat-date"><strong>Registro recuperado</strong><small>Origem desconhecida</small></div>
+                  <img class="sinaiszap-last-photo" src="data:image/webp;base64,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" alt="Foto de um cachorro olhando para a câmera" />
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>Eu acho que coloquei o número errado</div>
+                  <div class="sinaiszap-message owner"><strong>Kaio</strong>Pqp</div>
+                </div>
                 <div class="sinaiszap-extra-empty" id="sinaiszap-extra-empty">
                   <span class="blocked-mark" aria-hidden="true">⊘</span>
                   <strong>Nenhuma mensagem disponível</strong>
@@ -2763,6 +2786,26 @@
       const sinaiszapExtraBack = document.getElementById('sinaiszap-extra-back');
       const sinaiszapExtraId = document.getElementById('sinaiszap-extra-id');
       const sinaiszapExtraEmpty = document.getElementById('sinaiszap-extra-empty');
+      const sinaiszapLastBody = document.getElementById('sinaiszap-last-body');
+      let lastCorruptTimer = null;
+      let lastErrorTimer = null;
+      const resetLastCorruption = () => {
+        clearTimeout(lastCorruptTimer);
+        clearTimeout(lastErrorTimer);
+        device.classList.remove('last-corrupt');
+        document.getElementById('last-red-error')?.classList.remove('show');
+      };
+      const startLastCorruption = () => {
+        resetLastCorruption();
+        lastCorruptTimer = setTimeout(() => {
+          if (!sinaiszapExtraChat.classList.contains('is-open') || sinaiszapLastBody.hidden) return;
+          device.classList.add('last-corrupt');
+          lastErrorTimer = setTimeout(() => {
+            device.classList.remove('last-corrupt');
+            document.getElementById('last-red-error').classList.add('show');
+          }, 1850);
+        }, 3300);
+      };
       const sinaiszapExtraMaria = document.getElementById('sinaiszap-extra-maria');
       const sinaiszapExtraContacts = document.querySelectorAll('.sinaiszap-extra-contact');
       const sinaiszapNotice = document.getElementById('sinaiszap-update-notice');
@@ -3422,6 +3465,7 @@
       settingsBack.addEventListener('click', closeSettings);
       // Galeria e SinaisZap: telas reservadas para as pistas futuras do ARG.
       const closeSinaiszapChat = () => {
+        resetLastCorruption();
         sinaiszapChat.classList.remove('is-open');
         sinaiszapChat.setAttribute('aria-hidden', 'true');
         sinaiszapExtraChat.classList.remove('is-open');
@@ -3913,16 +3957,27 @@
             return;
           }
           const isMaria = contact.dataset.contactNumber === '02';
+          const isLast = contact.dataset.contactNumber === '08';
+          sinaiszapLastBody.hidden = !isLast;
+          if (isLast) startLastCorruption();
           sinaiszapExtraId.textContent = 'Bloqueado · contato #' + contact.dataset.contactNumber;
-          sinaiszapExtraEmpty.hidden = isMaria;
+          sinaiszapExtraEmpty.hidden = isMaria || isLast;
           sinaiszapExtraMaria.hidden = !isMaria;
-          sinaiszapExtraChat.setAttribute('aria-label', isMaria ? 'Conversa com Maria — contato bloqueado 02' : 'Conversa com contato bloqueado');
+          sinaiszapExtraChat.setAttribute('aria-label', isMaria ? 'Conversa com Maria — contato bloqueado 02' : isLast ? 'Última conversa — contato 08' : 'Conversa com contato bloqueado');
           sinaiszapExtraChat.classList.add('is-open');
           sinaiszapExtraChat.setAttribute('aria-hidden', 'false');
           if (isMaria) sinaiszapExtraMaria.scrollTop = 0;
         });
       });
       sinaiszapExtraBack.addEventListener('click', closeSinaiszapChat);
+      document.getElementById('last-restart').addEventListener('click', () => {
+        resetLastCorruption();
+        closeSinaiszapChat();
+        closeMiniApp();
+        device.classList.remove('off');
+        // Reinicia a página, restaurando a tela de bloqueio e mantendo o progresso salvo.
+        window.location.reload();
+      });
       sinaiszapOwnerOpen.addEventListener('click', () => {
         if (!virtualWifiConnected || !document.getElementById('sinaiszap-screen').classList.contains('is-open')) return;
         closeSinaiszapChat();
