@@ -281,6 +281,16 @@
 #auth .auth-tab,#auth input{position:relative;z-index:2;pointer-events:auto}
 </style>
 <link rel="stylesheet" href="/session-recorder-v17.css" />
+<style>
+/* Sessão: retratos de personagem independentes do avatar e da câmera */
+.session-seat-character{position:absolute;left:2px;bottom:21px;width:31%;max-width:104px;height:auto;max-height:48%;object-fit:contain;object-position:left bottom;pointer-events:none;z-index:2;mix-blend-mode:lighten;user-select:none}
+.session-seat-character[hidden]{display:none!important}
+.session-character-controls{width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:9px 11px;border:1px solid #62218e;border-radius:10px;background:#160e1f;color:#dfb4ff}
+.session-character-controls strong{font-size:12px;flex-basis:100%}
+.session-character-controls button{font:inherit;font-size:11px;color:#e9d8f7;background:#21172b;border:1px solid #64477c;border-radius:7px;padding:6px 9px;cursor:pointer}
+.session-character-controls button[aria-pressed="true"]{background:#452166;border-color:#b86af3;color:#fff}
+.session-character-controls button:disabled{opacity:.6;cursor:wait}
+</style>
 </head>
 <body>
 <div class="auth-screen" id="auth">
@@ -704,6 +714,33 @@ function sendMediaInfo(){const c=state.call;if(!c.room)return;
 }
 
 
+
+const sessionCharacterNames={knight:'Knight',manuela:'Manuela',luska:'Luska',mafe:'Mafe'};
+function sessionCharacterVisible(area){return state.server?.sessionCharacters?.[area]!==false;}
+function sessionCharacterMarkup(area){
+ if(!Object.prototype.hasOwnProperty.call(sessionCharacterNames,area))return '';
+ return `<img class="session-seat-character" data-session-character="${area}" src="/session-character-${area}.webp" alt="Personagem de ${sessionCharacterNames[area]}" draggable="false" ${sessionCharacterVisible(area)?'':'hidden'}>`;
+}
+function sessionCharacterControls(){
+ if(!isStaff())return '';
+ return `<div class="session-character-controls"><strong>✦ Personagens • Controle do Mestre</strong>${Object.entries(sessionCharacterNames).map(([area,name])=>`<button type="button" data-action="session-character-toggle" data-character="${area}" aria-pressed="${sessionCharacterVisible(area)}">${name}: ${sessionCharacterVisible(area)?'Visível':'Oculto'}</button>`).join('')}</div>`;
+}
+function applySessionCharacters(data){
+ if(!data||data.serverId!==state.server?.id)return;
+ state.server.sessionCharacters={...data.characters};
+ document.querySelectorAll('[data-session-character]').forEach(img=>{img.hidden=!sessionCharacterVisible(img.dataset.sessionCharacter)});
+ document.querySelectorAll('[data-action="session-character-toggle"]').forEach(btn=>{
+  const area=btn.dataset.character;if(!Object.prototype.hasOwnProperty.call(sessionCharacterNames,area))return;
+  const visible=sessionCharacterVisible(area);btn.setAttribute('aria-pressed',String(visible));btn.textContent=sessionCharacterNames[area]+': '+(visible?'Visível':'Oculto');
+ });
+}
+async function toggleSessionCharacter(area,button){
+ if(!isStaff()||!Object.prototype.hasOwnProperty.call(sessionCharacterNames,area))return;
+ button.disabled=true;
+ try{const data=await api('/api/session-characters','POST',{serverId:state.server.id,area,visible:!sessionCharacterVisible(area)});applySessionCharacters(data);}
+ finally{button.disabled=false;}
+}
+
 function renderSessionCall(ch,participants,connected){
  const member=name=>state.members.find(u=>String(u.username||'').toLowerCase()===name.toLowerCase());
  const master=state.members.find(u=>u.role==='mestre')||member('Pingu');
@@ -725,6 +762,7 @@ function renderSessionCall(ch,participants,connected){
       <span class="session-seat-avatar">${cameraMarkup||photo}</span>
       <strong>${name}</strong><small>${E(status)}</small>
     </button>
+    ${sessionCharacterMarkup(area)}
     <span class="session-seat-label">${E(fallback)}</span>
   </div>`;
  };
@@ -755,6 +793,7 @@ function renderSessionCall(ch,participants,connected){
     ${seat(member('Luska'),'Luska','luska')}
     ${seat(member('Mafe'),'Mafe','mafe')}
    </div></div>
+   ${sessionCharacterControls()}
    <div class="voice-stage-bottom">
     ${connected?inlineCallControls():`<button class="primary-btn voice-join-btn" data-action="join-voice" data-id="${E(ch.id)}">🔊 Entrar na Sessão</button>`}
     <p class="call-tip">A transmissão fica abaixo do Mestre. Para assistir, entre na Sessão.</p>
@@ -1054,9 +1093,10 @@ async function connectEvents(){
   source.addEventListener('typing',e=>{const d=JSON.parse(e.data);if(d.userId===state.me.id)return;state.typing[d.userId]={...d,time:Date.now()};renderTyping();setTimeout(renderTyping,3500);});
   source.addEventListener('user-update',e=>{const u=JSON.parse(e.data);allUsers=allUsers.filter(x=>x.id!==u.id).concat(u);state.members=state.members.map(x=>x.id===u.id?{...x,...u}:x);state.dms=state.dms.map(x=>x.id===u.id?{...x,...u}:x);if(u.id===state.me.id)state.me={...state.me,...u};renderMembers();renderSelf();});
   source.addEventListener('channel-update',()=>refreshFromEvent().catch(()=>{}));
+  source.addEventListener('session-characters',e=>{try{applySessionCharacters(JSON.parse(e.data))}catch(err){console.error(err)}});
   source.addEventListener('server-update',()=>refreshFromEvent().catch(()=>{}));
   source.addEventListener('signal',e=>onSignal(JSON.parse(e.data)).catch(console.error));
-  source.onopen=()=>{if(state.call.room&&state.call.signalingLost){state.call.signalingLost=false;(async()=>{
+  source.onopen=()=>{if(state.server?.id)api('/api/session-characters?serverId='+encodeURIComponent(state.server.id)).then(applySessionCharacters).catch(()=>{});if(state.call.room&&state.call.signalingLost){state.call.signalingLost=false;(async()=>{
    const {people}=await api('/api/voice/join','POST',{channelId:state.call.room});
    for(const p of people){if(!state.call.peers.has(p.id)){await createPeer(p.id,true)}else if(state.call.peers.get(p.id).iceConnectionState==='failed'){const pc=state.call.peers.get(p.id);if(pc.signalingState==='stable'){pc.restartIce();await pc.setLocalDescription(await pc.createOffer({iceRestart:true}));await signal(p.id,'offer',pc.localDescription)}}}
   })().catch(err=>console.warn('Reconexão de voz:',err))}};
@@ -1255,6 +1295,7 @@ async function action(a,el){
  switch(a){
  case 'dice-open':openDiceModal();break;
  case 'master-panel':showMasterPanel();break;
+ case 'session-character-toggle':await toggleSessionCharacter(el.dataset.character,el);break;
  case 'master-toggle':await toggleMasterPermission(id,el.dataset.kind,el.dataset.enabled==='true');break;
  case 'dice-select':$('#diceSides').value=value;$$('.dice-type').forEach(b=>b.classList.toggle('chosen',b.dataset.value===value));diceUpdateHint();break;
  case 'dice-minus':$('#diceCount').value=Math.max(1,Number($('#diceCount').value||1)-1);diceUpdateHint();break;

@@ -315,6 +315,24 @@ async function api(req,res,p,params){
   }
   if(!s)return error(res,'Faça login para continuar.',401);
   const u=s.user;
+
+  // Personagens da Sessão: membros leem, somente Mestre altera. Não modifica voz, perfis ou mensagens.
+  if(p==='/api/session-characters'&&(method==='GET'||method==='POST')){
+    const b=method==='POST'?await body(req,10000):{serverId:params.get('serverId')};
+    const server=db.servers.find(x=>x.id===b.serverId&&x.members?.[u.id]);
+    if(!server)return error(res,'Servidor indisponível.',403);
+    if(method==='POST'){
+      if(server.members[u.id]!=='mestre')return error(res,'Somente o Mestre pode controlar personagens.',403);
+      if(!['knight','manuela','luska','mafe'].includes(b.area)||typeof b.visible!=='boolean')return error(res,'Personagem ou estado inválido.',400);
+      server.sessionCharacters ||= {};
+      server.sessionCharacters[b.area]=b.visible;
+      await persistImmediate();
+    }
+    const data={serverId:server.id,characters:{...(server.sessionCharacters||{})}};
+    if(method==='POST')broadcast('session-characters',data,Object.keys(server.members));
+    return tokenize(res,data);
+  }
+
   // Gravações da Sessão: somente o Mestre pode criar, listar ou baixar.
   // Os participantes recebem apenas o status "está gravando" para transparência.
   if(p==='/api/session-recordings/status'&&method==='GET'){
